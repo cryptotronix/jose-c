@@ -53,6 +53,9 @@ AC_PROG_CC
 AC_PROG_CC_C_O
 AM_PROG_CC_C_O
 LT_INIT([disable-static])
+gl_EARLY
+gl_INIT
+
 
 # Define these substitions here to keep all version information in one place.
 # For information on how to properly maintain the library version information,
@@ -63,7 +66,7 @@ AC_SUBST([JOSEC_API_VERSION], [0.1])
 
 # Override the template file name of the generated .pc file, so that there
 # is no need to rename the template file when the API version changes.
-AC_CONFIG_FILES([Makefile test/Makefile
+AC_CONFIG_FILES([Makefile test/Makefile lib/Makefile
                  josec-${JOSEC_API_VERSION}.pc:josec.pc.in])
 AC_OUTPUT
 

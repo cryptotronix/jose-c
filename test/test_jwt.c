@@ -95,10 +95,11 @@ START_TEST(test_base64)
 {
 
     char * str = "Hello";
-    int elen = base64_encode_length(strlen(str));
-    char * encoded = malloc(elen);
 
-    base64_encode(str, strlen(str), encoded);
+    int elen = BASE64_LENGTH(strlen(str));
+    char * encoded;
+
+    base64_encode_alloc (str, strlen(str), &encoded);
 
     printf("%s\n", encoded);
 

@@ -73,3 +73,8 @@
 /aclocal.m4
 /ar-lib
 /.libs/
+/m4/
+/lib/
+/test/check_libjosec
+/INSTALL
+/snippet/

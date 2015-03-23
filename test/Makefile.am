@@ -17,5 +17,6 @@
 TESTS = check_libjosec
 check_PROGRAMS = check_libjosec
 check_libjosec_SOURCES = test_jwt.c $(top_builddir)/libjosec.h
-check_libjosec_CFLAGS = @CHECK_CFLAGS@ $(JANSSON_CFLAGS)
-check_libjosec_LDADD = ../libjosec-0.1.la @CHECK_LIBS@ $(JANSSON_LIBS)
+check_libjosec_CFLAGS = @CHECK_CFLAGS@ $(JANSSON_CFLAGS) -I$(top_srcdir)/lib
+check_libjosec_LDADD = ../libjosec-0.1.la @CHECK_LIBS@ $(JANSSON_LIBS) /
+		       $(top_srcdir)/lib/libgnu.la

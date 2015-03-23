@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with libjosec.  If not, see <http://www.gnu.org/licenses/>.
 
-SUBDIRS = . test
+SUBDIRS = lib . test
 ## Place generated object files (.o) into the same directory as their source
 ## files, in order to avoid collisions when non-recursive make is used.
 AUTOMAKE_OPTIONS = subdir-objects
@@ -28,11 +28,9 @@ AM_CFLAGS = -DDATA_DIR=\"$(pkgdatadir)\"
 ## to provide a way for the user to supply additional arguments.
 ACLOCAL_AMFLAGS = ${ACLOCAL_FLAGS} -I m4
 
-libjosec_@JOSEC_API_VERSION@_la_CPPFLAGS = $(XML_CFLAGS)
-libjosec_@JOSEC_API_VERSION@_la_LIBADD = $(XML_LIBS)
+libjosec_@JOSEC_API_VERSION@_la_CPPFLAGS = $(XML_CFLAGS) $(JANSSON_CFLAGS) -I$(top_srcdir)/lib
 
-libjosec_@JOSEC_API_VERSION@_la_CPPFLAGS = $(JANSSON_CFLAGS)
-libjosec_@JOSEC_API_VERSION@_la_LIBADD = $(JANSSON_LIBS)
+libjosec_@JOSEC_API_VERSION@_la_LIBADD = $(XML_LIBS) $(JANSSON_LIBS) lib/libgnu.la
 
 ## Define a libtool archive target "libjosec-@EXAMPLE_API_VERSION@.la", with
 ## @JOSEC_API_VERSION@ substituted into the generated Makefile at configure
