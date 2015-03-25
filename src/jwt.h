@@ -28,4 +28,10 @@ char *
 jwt_encode(json_t *claims, jwa_t alg, sign_funcp sfunc);
 
 
+json_t *
+b64url2json (char *encoded, size_t len);
+
+size_t
+json2b64url (const json_t *j, char **out);
+
 #endif // LIBJOSECJWT_H_

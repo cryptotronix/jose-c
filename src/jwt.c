@@ -183,17 +183,17 @@ jwt_encode(json_t *claims, jwa_t alg, sign_funcp sfunc)
 
     char *head_s = json_dumps(head_j, 0);
 
-    hlen = base64_encode_length(strlen(head_s));
+    printf ("Header: %s\n", head_s);
 
-    base64url_encode (head_s, strlen(head_s), &head_e);
+    hlen = base64url_encode_alloc (head_s, strlen(head_s), &head_e);
+
+    printf ("Encoded header: %s\n", head_e);
 
     char *claims_s = json_dumps(claims, 0);
 
     printf ("Claims to encode: %s\n", claims_s);
 
-    clen = base64_encode_length(strlen(claims_s));
-
-    base64url_encode (claims_s, strlen(claims_s), &claims_e);
+    clen = base64url_encode_alloc (claims_s, strlen(claims_s), &claims_e);
 
     printf ("Encoded claims: %s\n", claims_e);
 
@@ -201,14 +201,64 @@ jwt_encode(json_t *claims, jwa_t alg, sign_funcp sfunc)
     assert (NULL != sign_input);
 
     strcpy (sign_input, head_e);
-    sign_input[hlen - 1] = '.';
+    sign_input[hlen] = '.';
 
-    strcpy (&sign_input[hlen], claims_e);
+    printf ("Sign input1: %s\n", sign_input);
+
+    strcpy (&sign_input[hlen + 1], claims_e);
 
     sign_input[hlen + 1 + clen] = '.';
 
+    printf ("Sign input2: %s\n", sign_input);
+
     return sign_input;
 }
+
+size_t
+json2b64url (const json_t *j, char **out)
+{
+    assert (NULL != j);
+
+    size_t s = 0;
+    char *str;
+
+    if (str = json_dumps(j, 0))
+    {
+        s = base64url_encode_alloc (str, strlen(str), out);
+
+        free (str);
+    }
+
+    return s;
+}
+
+json_t *
+b64url2json (char *encoded, size_t len)
+{
+    assert (NULL != encoded);
+
+    char *str;
+    size_t d_len;
+    json_t *j = NULL;
+
+    json_error_t jerr;
+
+    d_len = base64url_decode_alloc (encoded, len, &str);
+
+    if (d_len <= 0)
+        return ;
+
+    j = json_loadb(str, d_len, 0, &jerr);
+
+    if (!j)
+        printf("%s\n", jerr.text);
+
+    free (str);
+
+    return j;
+
+}
+
 
 /*
  * Print a prompt and return (by reference) a null-terminated line of
