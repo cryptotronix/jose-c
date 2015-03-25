@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <jansson.h>
+#include <gcrypt.h>
 
 void
 test_json();
@@ -33,5 +34,17 @@ b64url2json (char *encoded, size_t len);
 
 size_t
 json2b64url (const json_t *j, char **out);
+
+int
+jwk2pubkey (const json_t *jwk, gcry_sexp_t *pubkey);
+
+int
+jws2sig (const char* b64urlsig, gcry_sexp_t *sig);
+
+int
+jwt2signinput (const char *jwt, gcry_sexp_t *out);
+
+int
+jwt_verify (const json_t *pub_jwk, const char *jwt);
 
 #endif // LIBJOSECJWT_H_

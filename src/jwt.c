@@ -27,6 +27,7 @@
 #include <jansson.h>
 #include <assert.h>
 #include <string.h>
+#include <gcrypt.h>
 #include "jwt.h"
 #include "base64url.h"
 
@@ -259,59 +260,167 @@ b64url2json (char *encoded, size_t len)
 
 }
 
-
-/*
- * Print a prompt and return (by reference) a null-terminated line of
- * text.  Returns NULL on eof or some error.
- */
-char *read_line(char *line, int max_chars) {
-    printf("Type some JSON > ");
-    fflush(stdout);
-    return fgets(line, max_chars, stdin);
-}
-
-/* ================================================================
- * main
- */
-
-void
-test_json()
+int
+jwt2signinput (const char *jwt, gcry_sexp_t *out)
 {
-    json_t *obj = json_object();
-    json_t *obj2 = json_object();
+    assert (NULL != jwt);
 
-    json_object_set_new(obj, "Version", json_integer(42));
-    json_object_set_new(obj2, "Crazy!", json_integer(42));
+    char *dot;
+    uint8_t *digest;
+    int rc = -1;
+    int sign_input_len;
 
-    json_object_set_new(obj, "Embedded", obj2);
+    dot = memrchr (jwt, (int)'.', strlen(jwt));
 
-    char *str = json_dumps(obj, JSON_ENSURE_ASCII);
+    if(NULL == dot)
+        return rc;
 
-    printf("%s\n", str);
+    const unsigned int DLEN = gcry_md_get_algo_dlen (GCRY_MD_SHA256);
+
+    digest = (uint8_t *)malloc (DLEN);
+    assert (NULL != digest);
+
+    sign_input_len = dot - jwt;
+
+    gcry_md_hash_buffer (GCRY_MD_SHA256, digest, jwt, sign_input_len);
+
+
+    rc = gcry_sexp_build (out, NULL,
+                          "(data (flags raw)\n"
+                          " (value %b))",
+                          DLEN, digest);
+
+    free (digest);
+
+    return rc;
+
+}
+int
+jws2sig (const char* b64urlsig, gcry_sexp_t *sig)
+{
+    assert (NULL != b64urlsig);
+    assert (NULL != sig);
+
+    size_t s_len;
+    uint8_t *raw_sig;
+
+    int rc = -1;
+
+    s_len = base64url_decode_alloc (b64urlsig,
+                                    strlen (b64urlsig),
+                                    (char **)&raw_sig);
+
+    if (s_len <= 0)
+        return rc;
+
+    /* Currently only support ECDSA P-256 */
+    if (s_len != 64)
+        return -2;
+
+    rc = gcry_sexp_build (sig, NULL,
+                          "(sig-val(ecdsa(r %b)(s %b)))",
+                          32, raw_sig,
+                          32, raw_sig + 32);
+
+    free (raw_sig);
+
+    return rc;
+}
+
+int
+jwt2sig (const char* jwt, gcry_sexp_t *sig)
+{
+    assert (NULL != jwt);
+    assert (NULL != sig);
+
+    char *dot;
+
+    dot = memrchr (jwt, (int)'.', strlen(jwt));
+
+    if (NULL == dot)
+        return -1;
+    else
+        return jws2sig (dot + 1, sig);
+
+}
+int
+jwk2pubkey (const json_t *jwk, gcry_sexp_t *pubkey)
+{
+    assert (NULL != jwk);
+    assert (NULL != pubkey);
+
+    int rc = -1;
+    json_t *j_x = json_object_get(jwk, "x");
+    json_t *j_y = json_object_get(jwk, "y");
+    uint8_t *x, *y, *q;
+    size_t x_len, y_len, q_len;
+
+    if (NULL == j_x || NULL == j_y)
+        return rc;
+
+    x_len = base64url_decode_alloc (json_string_value (j_x),
+                                    strlen (json_string_value (j_x)),
+                                    (char **)&x);
+
+    y_len = base64url_decode_alloc (json_string_value (j_y),
+                                    strlen (json_string_value (j_y)),
+                                    (char **)&y);
+
+    if (x_len <= 0 || y_len <= 0)
+        return rc;
+
+    q_len = x_len + y_len + 1;
+    q = (uint8_t *)malloc(q_len);
+    assert (NULL != q);
+
+    q[0] = 0x04;
+
+    memcpy (q+1, x, x_len);
+    memcpy (q+1+x_len, y, y_len);
+
+    rc = gcry_sexp_build (pubkey, NULL,
+                          "(public-key\n"
+                          " (ecdsa\n"
+                          "  (curve \"NIST P-256\")\n"
+                          "  (q %b)"
+                          "))", q_len, q);
+
+    free (x);
+    free (y);
+    free (q);
+
+    return rc;
 
 }
 
-#define MAX_CHARS 4096
+int
+jwt_verify (const json_t *pub_jwk, const char *jwt)
+{
+    assert (NULL != pub_jwk);
+    assert (NULL != jwt);
 
-int main(int argc, char *argv[]) {
-    char line[MAX_CHARS];
+    int rc = -1;
+    gcry_sexp_t pubkey, digest, sig;
 
-    if (argc != 1) {
-        fprintf(stderr, "Usage: %s\n", argv[0]);
-        exit(-1);
-    }
 
-    while (read_line(line, MAX_CHARS) != (char *)NULL) {
+    if (rc = jwk2pubkey (pub_jwk, &pubkey))
+        goto OUT;
 
-        /* parse text into JSON structure */
-        json_t *root = load_json(line);
+    if (rc = jwt2signinput (jwt, &digest))
+        goto FREE_PUB;
 
-        if (root) {
-            /* print and release the JSON structure */
-            print_json(root);
-            json_decref(root);
-        }
-    }
+    if (rc = jwt2sig (jwt, &sig))
+        goto FREE_DIGEST;
 
-    return 0;
+    rc = gcry_pk_verify (sig, digest, pubkey);
+
+    gcry_free (sig);
+FREE_DIGEST:
+    gcry_free (digest);
+FREE_PUB:
+    gcry_free (pubkey);
+OUT:
+
+    return rc;
+
 }

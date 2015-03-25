@@ -3,7 +3,16 @@
 #include "../libjosec.h"
 #include <jansson.h>
 #include <assert.h>
+#include <gcrypt.h>
 
+
+const char * encoded_jwk = "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"f83OJ3D2xF1Bg8vub9tLe1gHMzV76e8Tus9uPHvRVEU\",\"y\":\"x_FEzRu9m36HLN_tue659LNpXW6pCyStikYjKIWI5a0\",\"d\":\"jpsQnnGQmL-YBIffH1136cspYG6-0iY7X1fCE9-E9LI\"}";
+
+const char *encoded_jwt =
+    "eyJhbGciOiJFUzI1NiJ9.eyJpc3MiOiJqb2UiLA0KICJleHAiOjEzMDA4MTkzODAsDQogImh0dHA6Ly9leGFtcGxlLmNvbS9pc19yb290Ijp0cnVlfQ.DtEhU3ljbEg8L38VWAfUAqOyKAM6-Xx-F4GawxaepmXFCgfTjDxw5djxLa8ISlSApmWQxfKTUJqPP3-Kg6NU1Q";
+
+const char *bad_sig_encoded_jwt =
+    "eyJhbGciOiJFUzI1NiJ9.eyJpc3MiOiJqb2UiLA0KICJleHAiOjEzMDA4MTkzODAsDQogImh0dHA6Ly9leGFtcGxlLmNvbS9pc19yb290Ijp0cnVlfQ.DtEhU3ljbEg8L38VWAfUAqOyKAM6-Xx-F4GawxaepmXFCgfTjDxw5djxLa8ISlSApmWQxfKTUJqPP3-Kg6Nabc";
 
 static int
 fill_random(uint8_t *ptr, const int len)
@@ -79,7 +88,6 @@ START_TEST(test_jwt_creation)
 
     /* signature = lca_soft_sign(&ecc, result); */
 
-    test_json();
 
     json_t *obj = json_object();
 
@@ -161,10 +169,7 @@ END_TEST
 START_TEST(test_jwt_verify)
 {
 
-    const char * encoded_jwk = "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"f83OJ3D2xF1Bg8vub9tLe1gHMzV76e8Tus9uPHvRVEU\",\"y\":\"x_FEzRu9m36HLN_tue659LNpXW6pCyStikYjKIWI5a0\",\"d\":\"jpsQnnGQmL-YBIffH1136cspYG6-0iY7X1fCE9-E9LI\"}";
 
-    char *encoded_jwt =
-        "eyJhbGciOiJFUzI1NiJ9.eyJpc3MiOiJqb2UiLA0KICJleHAiOjEzMDA4MTkzODAsDQogImh0dHA6Ly9leGFtcGxlLmNvbS9pc19yb290Ijp0cnVlfQ.DtEhU3ljbEg8L38VWAfUAqOyKAM6-Xx-F4GawxaepmXFCgfTjDxw5djxLa8ISlSApmWQxfKTUJqPP3-Kg6NU1Q";
 
     char *ht = "eyJhbGciOiJFUzI1NiJ9";
 
@@ -233,6 +238,54 @@ START_TEST(test_jwt_verify)
 }
 END_TEST
 
+START_TEST(t_jwk2pubkey)
+{
+
+    json_error_t jerr;
+    json_t *jwk = json_loads(encoded_jwk, 0, &jerr);
+
+    ck_assert (NULL != jwk);
+
+    gcry_sexp_t pubkey;
+
+    ck_assert (0 == jwk2pubkey (jwk, &pubkey));
+
+}
+END_TEST
+
+START_TEST(t_jwk2sig)
+{
+    const char *b64sig = "DtEhU3ljbEg8L38VWAfUAqOyKAM6-Xx-F4GawxaepmXFCgfTjDxw5djxLa8ISlSApmWQxfKTUJqPP3-Kg6NU1Q";
+
+    gcry_sexp_t sig;
+
+    ck_assert (0 == jws2sig (b64sig, &sig));
+
+}
+END_TEST
+
+START_TEST(t_jwt2signinput)
+{
+    gcry_sexp_t digest;
+
+    ck_assert (0 == jwt2signinput (encoded_jwt, &digest));
+
+
+}
+END_TEST
+
+START_TEST(t_jwtverfiy)
+{
+    json_error_t jerr;
+    json_t *jwk = json_loads(encoded_jwk, 0, &jerr);
+
+    ck_assert (NULL != jwk);
+
+    ck_assert (0 == jwt_verify (jwk, encoded_jwt));
+
+    ck_assert (0 != jwt_verify (jwk, bad_sig_encoded_jwt));
+}
+END_TEST
 
 Suite * jwt_suite(void)
 {
@@ -247,6 +300,10 @@ Suite * jwt_suite(void)
     tcase_add_test(tc_core, test_jwt_creation);
     tcase_add_test(tc_core, test_base64);
     tcase_add_test(tc_core, test_b64url2json);
+    tcase_add_test(tc_core, t_jwk2pubkey);
+    tcase_add_test(tc_core, t_jwk2sig);
+    tcase_add_test(tc_core, t_jwt2signinput);
+    tcase_add_test(tc_core, t_jwtverfiy);
     //tcase_add_test(tc_core, test_jwt_verify);
     suite_add_tcase(s, tc_core);
 
