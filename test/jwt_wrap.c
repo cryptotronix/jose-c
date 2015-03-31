@@ -123,7 +123,7 @@ file2json (FILE *fp)
         fprintf(stderr, "Failed to parse JSON file: %s\n", jerr.text);
     }
 
-    close (fp);
+    fclose (fp);
 
     return j;
 
@@ -137,7 +137,7 @@ f2jwt (FILE *fp, jwa_t alg, sign_funcp sfunc)
     char *jwt;
 
     if (NULL == (j = file2json (fp)))
-        return j;
+        return NULL;
 
     jwt = jwt_encode (j, alg, sfunc);
 
@@ -192,6 +192,10 @@ soft_sign (const uint8_t *to_sign, size_t len,
     if (rc = gcry_pk_sign (&sig, digest, key))
         goto KEY;
 
+    lca_set_log_level (DEBUG);
+    lca_print_sexp (sig);
+    lca_set_log_level (INFO);
+
     struct lca_octet_buffer signature = lca_sig2buf (&sig);
 
     if (NULL != signature.ptr)
@@ -200,9 +204,6 @@ soft_sign (const uint8_t *to_sign, size_t len,
         *out_len = signature.len;
         rc = 0;
     }
-
-
-
 
     gcry_free (sig);
 
@@ -236,10 +237,7 @@ main (int argc, char **argv)
      be reflected in arguments. */
   argp_parse (&argp, argc, argv, 0, 0, &arguments);
 
-  assert (NULL != gcry_check_version (NULL));
-
-  gcry_control (GCRYCTL_INITIALIZATION_FINISHED, 0);
-
+  lca_init();
 
   if (!arguments.hardware)
       jwt = f2jwt (arguments.input_file, arguments.alg, soft_sign);

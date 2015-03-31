@@ -5,6 +5,7 @@
 #include <string.h>
 #include <assert.h>
 #include <base64.h>
+#include <stdlib.h>
 
 size_t
 base64url_encode_alloc (const uint8_t *data, size_t len, char **out)
@@ -33,15 +34,20 @@ base64url_encode_alloc (const uint8_t *data, size_t len, char **out)
 
 
 size_t
-base64url_decode_alloc (const uint8_t *data, size_t len, char **out)
+base64url_decode_alloc (const uint8_t *data, size_t l, char **out)
 {
     int i;
     size_t s, pad;
     char *burl;
+    size_t len;
 
     assert(NULL != data);
 
+    len = strnlen (data, l);
+
     pad = len + (4 - len % 4) % 4;
+
+    printf ("\npad: %d len: %d\n", pad, len);
 
     assert (pad >= len);
 
@@ -64,8 +70,12 @@ base64url_decode_alloc (const uint8_t *data, size_t len, char **out)
         burl[len + i] = '=';
     }
 
+    printf ("To b64 decode: %s\n", burl);
     if (!base64_decode_alloc (burl, pad, out, &s))
+    {
+        printf ("DECODE FAILED\n");
         s = -1;
+    }
 
     free (burl);
 

@@ -4,6 +4,7 @@
 #include <jansson.h>
 #include <assert.h>
 #include <gcrypt.h>
+#include <libcryptoauth.h>
 
 
 const char * encoded_jwk = "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"f83OJ3D2xF1Bg8vub9tLe1gHMzV76e8Tus9uPHvRVEU\",\"y\":\"x_FEzRu9m36HLN_tue659LNpXW6pCyStikYjKIWI5a0\",\"d\":\"jpsQnnGQmL-YBIffH1136cspYG6-0iY7X1fCE9-E9LI\"}";
@@ -399,6 +400,28 @@ START_TEST(t_split)
 }
 END_TEST
 
+START_TEST(t_g2jwk)
+{
+    gcry_sexp_t pubkey;
+    json_t *jwk;
+
+    ck_assert (0 == lca_load_signing_key ("test_keys/test.key", &pubkey));
+
+    ck_assert (0 != (jwk = gcry_pubkey2jwk (&pubkey)));
+
+    fprintf (stdout, "%s: ", "JWK");
+    ck_assert (0 == json_dumpf(jwk, stdout, 0));
+    fprintf (stdout, "\n");
+
+    ck_assert_str_eq("EC", json_string_value (json_object_get (jwk, "kty")));
+    ck_assert_str_eq("P-256", json_string_value (json_object_get (jwk, "crv")));
+    ck_assert_str_eq("sig", json_string_value (json_object_get (jwk, "use")));
+    ck_assert(NULL != json_string_value (json_object_get (jwk, "x")));
+    ck_assert(NULL != json_string_value (json_object_get (jwk, "y")));
+
+}
+END_TEST
+
 Suite * jwt_suite(void)
 {
     Suite *s;
@@ -420,6 +443,7 @@ Suite * jwt_suite(void)
     tcase_add_test(tc_core, t_encode_none);
     tcase_add_test(tc_core, t_split);
     tcase_add_test(tc_core, t_encode);
+    tcase_add_test(tc_core, t_g2jwk);
     //tcase_add_test(tc_core, test_jwt_verify);
     suite_add_tcase(s, tc_core);
 
@@ -434,6 +458,8 @@ int main(void)
 
     s = jwt_suite();
     sr = srunner_create(s);
+
+    lca_init();
 
     srunner_run_all(sr, CK_NORMAL);
     number_failed = srunner_ntests_failed(sr);

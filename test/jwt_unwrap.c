@@ -6,6 +6,13 @@
 #include <libcryptoauth.h>
 #include "../libjosec.h"
 
+typedef enum
+{
+    INVALID_KF,
+    GCRYPT,
+    JWK
+} kf_format_t;
+
 const char *argp_program_version =
   "jwt-unwrap 0.1";
 const char *argp_program_bug_address =
@@ -14,11 +21,6 @@ const char *argp_program_bug_address =
 /* Program documentation. */
 static char doc[] =
   "Unwraps and verifies";
-
-const char * encoded_jwk = "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"f83OJ3D2xF1Bg8vub9tLe1gHMzV76e8Tus9uPHvRVEU\",\"y\":\"x_FEzRu9m36HLN_tue659LNpXW6pCyStikYjKIWI5a0\",\"d\":\"jpsQnnGQmL-YBIffH1136cspYG6-0iY7X1fCE9-E9LI\"}";
-
-const char *encoded_jwt =
-    "eyJhbGciOiJFUzI1NiJ9.eyJpc3MiOiJqb2UiLA0KICJleHAiOjEzMDA4MTkzODAsDQogImh0dHA6Ly9leGFtcGxlLmNvbS9pc19yb290Ijp0cnVlfQ.DtEhU3ljbEg8L38VWAfUAqOyKAM6-Xx-F4GawxaepmXFCgfTjDxw5djxLa8ISlSApmWQxfKTUJqPP3-Kg6NU1Q";
 
 /* A description of the arguments we accept. */
 static char args_doc[] = "";
@@ -33,16 +35,14 @@ static struct argp_option options[] = {
   {"silent",   's', 0,      OPTION_ALIAS },
   {"hardware", 'h', 0,      0,  "Use hardware crypto" },
   {"alg",      'a', "ALGORITHM", 0,  "JWA algorithm type"},
-  {"key",      'k', "KEYFILE", 0,  "Gcrypt sexp private Keyfile"},
+  {"key",      'k', "KEYFILE", 0,  "Public Key file"},
+  {"format",   'f', "KEYFILE FORMAT", 0,  "Format of keyfile"},
   {"display",  'd', "DISPLAY", 0,
    "DISPLAY option for the result" },
   {"jwt",     'j', "JWT", 0,
    "JWT FILE which will be read instead of stdin" },
   { 0 }
 };
-
-/* keyfile */
-char *key_f;
 
 /* Used by main to communicate with parse_opt. */
 struct arguments
@@ -52,6 +52,8 @@ struct arguments
   FILE *input_file;
   char *display;
   jwa_t alg;
+  kf_format_t key_format;
+  char *key_file;
 };
 
 /* Parse a single option. */
@@ -74,7 +76,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
       arguments->hardware = 1;
       break;
     case 'k':
-        key_f = arg;
+        arguments->key_file = arg;
         break;
     case 'j':
       if (NULL == (arguments->input_file = fopen (arg, "r")))
@@ -121,8 +123,9 @@ file2jwt (FILE *fp)
     size_t MAX = 1024 * 10;
     char *jwt = malloc (MAX);
     assert (NULL != jwt);
+    int l;
 
-    if (0 == fread(jwt, 1, MAX, fp))
+    if (0 == (l = fread(jwt, 1, MAX, fp)))
         return NULL;
     else
         return jwt;
@@ -143,7 +146,7 @@ file2json (FILE *fp)
         fprintf(stderr, "Failed to parse JSON file: %s\n", jerr.text);
     }
 
-    close (fp);
+    fclose (fp);
 
     return j;
 
@@ -157,7 +160,7 @@ f2jwt (FILE *fp, jwa_t alg, sign_funcp sfunc)
     char *jwt;
 
     if (NULL == (j = file2json (fp)))
-        return j;
+        return NULL;
 
     jwt = jwt_encode (j, alg, sfunc);
 
@@ -168,86 +171,60 @@ f2jwt (FILE *fp, jwa_t alg, sign_funcp sfunc)
 }
 
 
-static int
-soft_sign (const uint8_t *to_sign, size_t len,
-      jwa_t alg, void *cookie,
-      uint8_t **out, size_t *out_len)
+json_t *
+jwk_load (const char *f, kf_format_t format)
 {
+    json_t *jwk;
+    assert (NULL != f);
 
-    assert (NULL != key_f);
-
-    int rc = -1;
-    uint8_t *hash;
-    gcry_sexp_t key, sig, digest;
-
-    const unsigned int DLEN = gcry_md_get_algo_dlen (GCRY_MD_SHA256);
-    hash = malloc (DLEN);
-    assert (NULL != hash);
-
-    gcry_md_hash_buffer (GCRY_MD_SHA256, hash, to_sign, len);
-
-    rc = gcry_sexp_build (&digest, NULL,
-                          "(data (flags raw)\n"
-                          " (value %b))",
-                          DLEN, hash);
-
-    if (rc)
-        goto OUT;
-
-
-    if (rc = lca_load_signing_key (key_f, &key))
-        goto DIG;
-
-
-
-
-    /* if (show_digest) */
-    /* { */
-    /*     lca_set_log_level (DEBUG); */
-    /*     lca_print_sexp (digest); */
-    /*     lca_set_log_level (INFO); */
-    /* } */
-
-
-    if (rc = gcry_pk_sign (&sig, digest, key))
-        goto KEY;
-
-    struct lca_octet_buffer signature = lca_sig2buf (&sig);
-
-    if (NULL != signature.ptr)
+    if (GCRYPT == format)
     {
-        *out = signature.ptr;
-        *out_len = signature.len;
-        rc = 0;
+
+        gcry_sexp_t key;
+        if (lca_load_signing_key (f, &key))
+            return NULL;
+
+        jwk = gcry_pubkey2jwk (&key);
+
+        json_dumpf (jwk, stdout, 0);
+
+        gcry_sexp_release (key);
+
+    }
+    else if (JWK == format)
+    {
+        json_error_t jerr;
+        FILE *fp;
+
+        if ((fp = fopen (f, "r")))
+            return NULL;
+
+        if (0 == (jwk = json_loadf (fp, 0, &jerr)))
+        {
+            fprintf(stderr, "Failed to parse JSON file: %s\n", jerr.text);
+        }
+
+        fclose (fp);
+
     }
 
-
-
-
-    gcry_free (sig);
-
-
-KEY:
-    gcry_free (key);
-DIG:
-    gcry_free (digest);
-OUT:
-    free (hash);
-    return rc;
+    return jwk;
 }
 
+
 int
-parse_jwt (FILE *fp)
+parse_jwt (FILE *fp, const char *keyfile, kf_format_t format)
 {
     int rc = -1;
     char *jwt;
+    json_t *head, *claims, *jwk= NULL;
 
     jwt = file2jwt (fp);
 
     if (!jwt)
         return rc;
 
-    json_t *head, *claims;
+
 
     printf ("jwt: %s", jwt);
 
@@ -256,16 +233,18 @@ parse_jwt (FILE *fp)
         json_dumpf (head, stdout, 0);
         json_dumpf (claims, stdout, 0);
 
-        json_error_t jerr;
-        json_t *jwk = json_loads(encoded_jwk, 0, &jerr);
+        if (NULL != keyfile)
+        {
+            jwk = jwk_load (keyfile, format);
+        }
 
-        rc = jwt_verify (jwk, encoded_jwt);
-
-        printf ("rc: %d", rc);
+        rc = jwt_verify (jwk, jwt);
 
     }
 
     free (jwt);
+
+    return rc;
 }
 int
 main (int argc, char **argv)
@@ -281,7 +260,8 @@ main (int argc, char **argv)
   arguments.input_file = stdin;
   arguments.display = "sexp";
   arguments.alg = NONE;
-  key_f = NULL;
+  arguments.key_format = GCRYPT;
+  arguments.key_file = NULL;
 
   /* Parse our arguments; every option seen by parse_opt will
      be reflected in arguments. */
@@ -293,7 +273,9 @@ main (int argc, char **argv)
 
 
   if (!arguments.hardware)
-      rc = parse_jwt (arguments.input_file);
+      rc = parse_jwt (arguments.input_file, arguments.key_file, arguments.key_format);
+
+  printf ("finaly rc %d\n", rc);
 
   exit (rc);
 }

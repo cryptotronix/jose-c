@@ -1,27 +1,3 @@
-/*
- * Simple example of parsing and printing JSON using jansson.
- *
- * SYNOPSIS:
- * $ examples/simple_parse
- * Type some JSON > [true, false, null, 1, 0.0, -0.0, "", {"name": "barney"}]
- * JSON Array of 8 elements:
- *   JSON True
- *   JSON False
- *   JSON Null
- *   JSON Integer: "1"
- *   JSON Real: 0.000000
- *   JSON Real: -0.000000
- *   JSON String: ""
- *   JSON Object of 1 pair:
- *     JSON Key: "name"
- *     JSON String: "barney"
- *
- * Copyright (c) 2014 Robert Poor <rdpoor@gmail.com>
- *
- * Jansson is free software; you can redistribute it and/or modify
- * it under the terms of the MIT license. See LICENSE for details.
- */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <jansson.h>
@@ -47,6 +23,8 @@ jwa2enum (const char *str)
 
     return jwa;
 }
+
+
 
 char *
 jwt_encode(json_t *claims, jwa_t alg, sign_funcp sfunc)
@@ -108,6 +86,11 @@ jwt_encode(json_t *claims, jwa_t alg, sign_funcp sfunc)
             size_t si_len = strlen(signing_input);
 
             b64sig_len = base64url_encode_alloc (sig, sig_len, &b64sig);
+
+            size_t a;
+            char *b;
+
+            a = base64url_decode_alloc (b64sig, b64sig_len, &b);
 
             size_t jwt_len = si_len + b64sig_len + 1;
 
@@ -253,12 +236,15 @@ jws2sig (const char* b64urlsig, gcry_sexp_t *sig)
 
     int rc = -1;
 
+    printf ("Sig: %d %s\n", strlen(b64urlsig), b64urlsig);
     s_len = base64url_decode_alloc (b64urlsig,
                                     strlen (b64urlsig),
-                                    (char **)&raw_sig);
+                                    &raw_sig);
 
+    printf ("HERE! %d\n", s_len);
     if (s_len <= 0)
         return rc;
+
 
     /* Currently only support ECDSA P-256 */
     if (s_len != 64)
@@ -343,29 +329,65 @@ jwk2pubkey (const json_t *jwk, gcry_sexp_t *pubkey)
 int
 jwt_verify (const json_t *pub_jwk, const char *jwt)
 {
-    assert (NULL != pub_jwk);
+
     assert (NULL != jwt);
 
     int rc = -1;
     gcry_sexp_t pubkey, digest, sig;
+    json_t *head, *claims, *alg_type;
+    const char *alg;
 
-
-    if (rc = jwk2pubkey (pub_jwk, &pubkey))
+    if ((rc = jwt_split (jwt, &head, &claims)))
         goto OUT;
 
-    if (rc = jwt2signinput (jwt, &digest))
-        goto FREE_PUB;
+    if (NULL == (alg_type = json_object_get (head, "alg")))
+        goto FREE_JSON;
 
-    if (rc = jwt2sig (jwt, &sig))
-        goto FREE_DIGEST;
+    if (NULL == (alg = json_string_value (alg_type)))
+        goto FREE_JSON;
 
-    rc = gcry_pk_verify (sig, digest, pubkey);
+    if (0 == strcmp ("NONE", alg))
+    {
+        /* signatures of type none are by definition, always verified */
+        rc = 0;
+        goto FREE_JSON;
+    }
+    else if (0 == strcmp ("ES256", alg))
+    {
+        assert (NULL != pub_jwk);
 
-    gcry_free (sig);
-FREE_DIGEST:
-    gcry_free (digest);
-FREE_PUB:
-    gcry_free (pubkey);
+        printf ("\n0\n");
+        if (rc = jwk2pubkey (pub_jwk, &pubkey))
+            goto FREE_JSON;
+
+        printf ("1\n");
+        if (rc = jwt2signinput (jwt, &digest))
+            goto FREE_PUB;
+
+        printf ("2\n");
+        if (rc = jwt2sig (jwt, &sig))
+            goto FREE_DIGEST;
+
+        printf ("3\n");
+        rc = gcry_pk_verify (sig, digest, pubkey);
+
+        printf ("4\n");
+        gcry_free (sig);
+    FREE_DIGEST:
+        gcry_free (digest);
+    FREE_PUB:
+        gcry_free (pubkey);
+    }
+    else
+    {
+        /* unsupported */
+        rc = -2;
+    }
+
+
+FREE_JSON:
+    json_decref (head);
+    json_decref (claims);
 OUT:
 
     return rc;
