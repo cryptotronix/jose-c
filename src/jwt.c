@@ -180,7 +180,7 @@ b64url2json (const char *encoded, size_t len)
     j = json_loadb(str, d_len, 0, &jerr);
 
     if (!j)
-        printf("%s\n", jerr.text);
+        fprintf(stderr, "%s\n", jerr.text);
 
     free (str);
 
@@ -236,19 +236,17 @@ jws2sig (const char* b64urlsig, gcry_sexp_t *sig)
 
     int rc = -1;
 
-    printf ("Sig: %d %s\n", strlen(b64urlsig), b64urlsig);
     s_len = base64url_decode_alloc (b64urlsig,
                                     strlen (b64urlsig),
                                     &raw_sig);
 
-    printf ("HERE! %d\n", s_len);
     if (s_len <= 0)
         return rc;
 
 
     /* Currently only support ECDSA P-256 */
     if (s_len != 64)
-        return -2;
+        return -4;
 
     rc = gcry_sexp_build (sig, NULL,
                           "(sig-val(ecdsa(r %b)(s %b)))",
@@ -356,22 +354,17 @@ jwt_verify (const json_t *pub_jwk, const char *jwt)
     {
         assert (NULL != pub_jwk);
 
-        printf ("\n0\n");
         if (rc = jwk2pubkey (pub_jwk, &pubkey))
             goto FREE_JSON;
 
-        printf ("1\n");
         if (rc = jwt2signinput (jwt, &digest))
             goto FREE_PUB;
 
-        printf ("2\n");
         if (rc = jwt2sig (jwt, &sig))
             goto FREE_DIGEST;
 
-        printf ("3\n");
         rc = gcry_pk_verify (sig, digest, pubkey);
 
-        printf ("4\n");
         gcry_free (sig);
     FREE_DIGEST:
         gcry_free (digest);
@@ -381,7 +374,7 @@ jwt_verify (const json_t *pub_jwk, const char *jwt)
     else
     {
         /* unsupported */
-        rc = -2;
+        rc = -3;
     }
 
 
@@ -411,7 +404,7 @@ jwt_split (const char *jwt, json_t **header, json_t **claims)
         return rc;
 
     if (NULL == (*header = b64url2json (jwt, dot - jwt)))
-        return -2;
+        return -5;
 
     if (NULL == (dot_2 = memrchr (jwt, (int)'.', j_len)))
     {
@@ -422,7 +415,7 @@ jwt_split (const char *jwt, json_t **header, json_t **claims)
     if (NULL == (*claims = b64url2json (dot + 1, dot_2 - dot - 1)))
     {
         json_decref (*header);
-        return -4;
+        return -6;
     }
 
     rc = 0;

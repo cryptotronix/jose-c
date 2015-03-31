@@ -192,9 +192,7 @@ soft_sign (const uint8_t *to_sign, size_t len,
     if (rc = gcry_pk_sign (&sig, digest, key))
         goto KEY;
 
-    lca_set_log_level (DEBUG);
     lca_print_sexp (sig);
-    lca_set_log_level (INFO);
 
     struct lca_octet_buffer signature = lca_sig2buf (&sig);
 

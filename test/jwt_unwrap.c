@@ -128,48 +128,12 @@ file2jwt (FILE *fp)
     if (0 == (l = fread(jwt, 1, MAX, fp)))
         return NULL;
     else
-        return jwt;
-
-}
-
-json_t *
-file2json (FILE *fp)
-{
-    json_error_t jerr;
-    int rc = -1;
-    json_t *j = NULL;
-
-    assert (fp != NULL);
-
-    if (0 == (j = json_loadf (fp, 0, &jerr)))
     {
-        fprintf(stderr, "Failed to parse JSON file: %s\n", jerr.text);
+        fprintf (stderr, "Load len: %d\n", l);
+        return jwt;
     }
 
-    fclose (fp);
-
-    return j;
-
 }
-
-char *
-f2jwt (FILE *fp, jwa_t alg, sign_funcp sfunc)
-{
-    int rc = -1;
-    json_t *j;
-    char *jwt;
-
-    if (NULL == (j = file2json (fp)))
-        return NULL;
-
-    jwt = jwt_encode (j, alg, sfunc);
-
-    json_decref (j);
-
-    return jwt;
-
-}
-
 
 json_t *
 jwk_load (const char *f, kf_format_t format)
@@ -186,7 +150,7 @@ jwk_load (const char *f, kf_format_t format)
 
         jwk = gcry_pubkey2jwk (&key);
 
-        json_dumpf (jwk, stdout, 0);
+        //json_dumpf (jwk, stdout, 0);
 
         gcry_sexp_release (key);
 
@@ -224,14 +188,16 @@ parse_jwt (FILE *fp, const char *keyfile, kf_format_t format)
     if (!jwt)
         return rc;
 
-
-
-    printf ("jwt: %s", jwt);
-
     if (0 == jwt_split (jwt, &head, &claims))
     {
+        printf ("Head: ");
         json_dumpf (head, stdout, 0);
+        printf ("\n");
+
+        printf ("Claims: ");
         json_dumpf (claims, stdout, 0);
+        printf ("\n");
+
 
         if (NULL != keyfile)
         {
@@ -239,6 +205,8 @@ parse_jwt (FILE *fp, const char *keyfile, kf_format_t format)
         }
 
         rc = jwt_verify (jwk, jwt);
+
+        printf ("RC: %d\n", rc);
 
     }
 
@@ -274,8 +242,6 @@ main (int argc, char **argv)
 
   if (!arguments.hardware)
       rc = parse_jwt (arguments.input_file, arguments.key_file, arguments.key_format);
-
-  printf ("finaly rc %d\n", rc);
 
   exit (rc);
 }

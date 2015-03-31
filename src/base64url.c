@@ -47,8 +47,6 @@ base64url_decode_alloc (const uint8_t *data, size_t l, char **out)
 
     pad = len + (4 - len % 4) % 4;
 
-    printf ("\npad: %d len: %d\n", pad, len);
-
     assert (pad >= len);
 
     burl = malloc (pad + 1);
@@ -70,10 +68,8 @@ base64url_decode_alloc (const uint8_t *data, size_t l, char **out)
         burl[len + i] = '=';
     }
 
-    printf ("To b64 decode: %s\n", burl);
     if (!base64_decode_alloc (burl, pad, out, &s))
     {
-        printf ("DECODE FAILED\n");
         s = -1;
     }
 
