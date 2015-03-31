@@ -42,12 +42,27 @@ fill_random(uint8_t *ptr, const int len)
     return len;
 }
 
+int sign_callback_called = 0;
+
 static int
-sign (const uint8_t *to_sign, uint8_t slen,
-      const uint8_t *key, uint8_t klen, void *cookie)
+sign (const uint8_t *to_sign, size_t len,
+      jwa_t alg, void *cookie,
+      uint8_t **out, size_t *out_len)
 {
+    sign_callback_called += 1;
+
+    uint8_t *random;
+
+    *out = malloc (64);
+
+    fill_random (*out, 64);
+    *out_len = 64;
+
+
     return 0;
 }
+
+
 START_TEST(test_jwt_creation)
 {
 
@@ -100,6 +115,53 @@ START_TEST(test_jwt_creation)
 
 }
 END_TEST
+
+START_TEST(t_signinput)
+{
+    const char *result = "eyJhbGciOiAibm9uZSJ9.eyJzdWIiOiAiQm9iIn0";
+
+    json_t *head_j = json_object();
+    json_object_set_new(head_j, "alg", json_string("none"));
+
+    json_t *claims_j = json_object();
+    json_object_set_new(claims_j, "sub", json_string("Bob"));
+
+
+    char * jwt =
+        make_signing_input (head_j, claims_j);
+
+    ck_assert (0 == strcmp (result, jwt));
+
+
+
+
+}
+END_TEST
+
+START_TEST(t_encode)
+{
+    int numtimes = sign_callback_called;
+
+    json_t *claims_j = json_object();
+    json_object_set_new(claims_j, "sub", json_string("Bob"));
+
+    char *jwt;
+
+    mark_point();
+
+    jwt = jwt_encode (claims_j, ES256, sign);
+
+    numtimes += 1;
+
+    ck_assert (numtimes == sign_callback_called);
+    ck_assert (NULL != jwt);
+
+    printf ("Signed JWT: %s\n", jwt);
+
+
+}
+END_TEST
+
 
 START_TEST(test_base64)
 {
@@ -287,6 +349,56 @@ START_TEST(t_jwtverfiy)
 }
 END_TEST
 
+START_TEST(t_encode_none)
+{
+    const char *result = "eyJhbGciOiAibm9uZSJ9.eyJzdWIiOiAiQm9iIn0.";
+
+    json_t *claims_j = json_object();
+
+
+    json_object_set_new(claims_j, "sub", json_string("Bob"));
+
+    char *jwt;
+
+
+    jwt = jwt_encode(claims_j, NONE, NULL);
+
+    ck_assert (NULL != jwt);
+
+    ck_assert (0 == strcmp (result, jwt));
+}
+END_TEST
+
+START_TEST(t_split)
+{
+    const char *jwt = "eyJhbGciOiAibm9uZSJ9.eyJzdWIiOiAiQm9iIn0.";
+    json_t *header, *claims;
+    int rc;
+
+    rc = jwt_split (jwt, &header, &claims);
+
+    printf("Split rc: %d\n", rc);
+
+    ck_assert (0 == rc);
+    ck_assert (NULL != header);
+    ck_assert (NULL != claims);
+
+    fprintf (stdout, "%s\n", "Dumping split jwt");
+    fprintf (stdout, "%s: ", "Header");
+    ck_assert (0 == json_dumpf(header, stdout, 0));
+    fprintf (stdout, "\n");
+
+    fprintf (stdout, "%s: ", "Claims");
+    ck_assert (0 == json_dumpf(claims, stdout, 0));
+    fprintf (stdout, "\n");
+
+    json_decref (header);
+    json_decref (claims);
+
+
+}
+END_TEST
+
 Suite * jwt_suite(void)
 {
     Suite *s;
@@ -304,6 +416,10 @@ Suite * jwt_suite(void)
     tcase_add_test(tc_core, t_jwk2sig);
     tcase_add_test(tc_core, t_jwt2signinput);
     tcase_add_test(tc_core, t_jwtverfiy);
+    tcase_add_test(tc_core, t_signinput);
+    tcase_add_test(tc_core, t_encode_none);
+    tcase_add_test(tc_core, t_split);
+    tcase_add_test(tc_core, t_encode);
     //tcase_add_test(tc_core, test_jwt_verify);
     suite_add_tcase(s, tc_core);
 

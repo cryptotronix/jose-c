@@ -12,6 +12,7 @@ base64url_encode_alloc (const uint8_t *data, size_t len, char **out)
     int i;
 
     assert(NULL != data);
+    assert(NULL != out);
 
     size_t s = base64_encode_alloc (data, len, out);
 

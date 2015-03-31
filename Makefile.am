@@ -28,9 +28,9 @@ AM_CFLAGS = -DDATA_DIR=\"$(pkgdatadir)\"
 ## to provide a way for the user to supply additional arguments.
 ACLOCAL_AMFLAGS = ${ACLOCAL_FLAGS} -I m4
 
-libjosec_@JOSEC_API_VERSION@_la_CPPFLAGS = $(XML_CFLAGS) $(JANSSON_CFLAGS) -I$(top_srcdir)/lib
+libjosec_@JOSEC_API_VERSION@_la_CPPFLAGS = $(CRYPTOAUTH_CFLAGS) $(XML_CFLAGS) $(JANSSON_CFLAGS) -I$(top_srcdir)/lib
 
-libjosec_@JOSEC_API_VERSION@_la_LIBADD = $(XML_LIBS) $(JANSSON_LIBS) lib/libgnu.la
+libjosec_@JOSEC_API_VERSION@_la_LIBADD = $(CRYPTOAUTH_LIBS) $(XML_LIBS) $(JANSSON_LIBS) lib/libgnu.la
 
 ## Define a libtool archive target "libjosec-@EXAMPLE_API_VERSION@.la", with
 ## @JOSEC_API_VERSION@ substituted into the generated Makefile at configure

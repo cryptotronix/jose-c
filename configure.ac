@@ -32,6 +32,9 @@ PKG_CHECK_MODULES([CHECK], [check >= 0.9.8])
 #Check for libjannson
 PKG_CHECK_MODULES([JANSSON], [jansson])
 
+#Check for libcryptoauth
+PKG_CHECK_MODULES([CRYPTOAUTH], [cryptoauth-0.1])
+
 #Check for lgcrypt
 have_gcrypt=no
 AC_SEARCH_LIBS([gcry_md_open], [gcrypt], [have_gcrypt=yes])

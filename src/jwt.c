@@ -30,142 +30,22 @@
 #include <gcrypt.h>
 #include "jwt.h"
 #include "base64url.h"
+#include <libcryptoauth.h>
 
-/* forward refs */
-void print_json(json_t *root);
-void print_json_aux(json_t *element, int indent);
-void print_json_indent(int indent);
-const char *json_plural(int count);
-void print_json_object(json_t *element, int indent);
-void print_json_array(json_t *element, int indent);
-void print_json_string(json_t *element, int indent);
-void print_json_integer(json_t *element, int indent);
-void print_json_real(json_t *element, int indent);
-void print_json_true(json_t *element, int indent);
-void print_json_false(json_t *element, int indent);
-void print_json_null(json_t *element, int indent);
 
-void print_json(json_t *root) {
-    print_json_aux(root, 0);
-}
+jwa_t
+jwa2enum (const char *str)
+{
+    assert (NULL != str);
 
-void print_json_aux(json_t *element, int indent) {
-    switch (json_typeof(element)) {
-    case JSON_OBJECT:
-        print_json_object(element, indent);
-        break;
-    case JSON_ARRAY:
-        print_json_array(element, indent);
-        break;
-    case JSON_STRING:
-        print_json_string(element, indent);
-        break;
-    case JSON_INTEGER:
-        print_json_integer(element, indent);
-        break;
-    case JSON_REAL:
-        print_json_real(element, indent);
-        break;
-    case JSON_TRUE:
-        print_json_true(element, indent);
-        break;
-    case JSON_FALSE:
-        print_json_false(element, indent);
-        break;
-    case JSON_NULL:
-        print_json_null(element, indent);
-        break;
-    default:
-        fprintf(stderr, "unrecognized JSON type %d\n", json_typeof(element));
-    }
-}
+    jwa_t jwa = INVALID;
 
-void print_json_indent(int indent) {
-    int i;
-    for (i = 0; i < indent; i++) { putchar(' '); }
-}
+    if (0 == strcmp (str, "none") || 0 == strcmp (str, "NONE"))
+        jwa = NONE;
+    else if (0 == strcmp (str, "ES256"))
+        jwa = ES256;
 
-const char *json_plural(int count) {
-    return count == 1 ? "" : "s";
-}
-
-void print_json_object(json_t *element, int indent) {
-    size_t size;
-    const char *key;
-    json_t *value;
-
-    print_json_indent(indent);
-    size = json_object_size(element);
-
-    printf("JSON Object of %ld pair%s:\n", size, json_plural(size));
-    json_object_foreach(element, key, value) {
-        print_json_indent(indent + 2);
-        printf("JSON Key: \"%s\"\n", key);
-        print_json_aux(value, indent + 2);
-    }
-
-}
-
-void print_json_array(json_t *element, int indent) {
-    size_t i;
-    size_t size = json_array_size(element);
-    print_json_indent(indent);
-
-    printf("JSON Array of %ld element%s:\n", size, json_plural(size));
-    for (i = 0; i < size; i++) {
-        print_json_aux(json_array_get(element, i), indent + 2);
-    }
-}
-
-void print_json_string(json_t *element, int indent) {
-    print_json_indent(indent);
-    printf("JSON String: \"%s\"\n", json_string_value(element));
-}
-
-void print_json_integer(json_t *element, int indent) {
-    print_json_indent(indent);
-    printf("JSON Integer: \"%" JSON_INTEGER_FORMAT "\"\n", json_integer_value(element));
-}
-
-void print_json_real(json_t *element, int indent) {
-    print_json_indent(indent);
-    printf("JSON Real: %f\n", json_real_value(element));
-}
-
-void print_json_true(json_t *element, int indent) {
-    (void)element;
-    print_json_indent(indent);
-    printf("JSON True\n");
-}
-
-void print_json_false(json_t *element, int indent) {
-    (void)element;
-    print_json_indent(indent);
-    printf("JSON False\n");
-}
-
-void print_json_null(json_t *element, int indent) {
-    (void)element;
-    print_json_indent(indent);
-    printf("JSON Null\n");
-}
-
-/*
- * Parse text into a JSON object. If text is valid JSON, returns a
- * json_t structure, otherwise prints and error and returns null.
- */
-json_t *load_json(const char *text) {
-    json_t *root;
-    json_error_t error;
-
-    root = json_loads(text, 0, &error);
-
-    if (root) {
-        return root;
-    } else {
-        fprintf(stderr, "json error on line %d: %s\n", error.line, error.text);
-        return (json_t *)0;
-    }
+    return jwa;
 }
 
 char *
@@ -175,46 +55,111 @@ jwt_encode(json_t *claims, jwa_t alg, sign_funcp sfunc)
     char *jwt = NULL;
     char *head_e;
     char *claims_e;
+    char *result = NULL;
+
+
     assert (NULL != claims);
 
 
+    char *alg_type;
+
+    switch (alg)
+    {
+    case ES256:
+        alg_type = "ES256";
+        break;
+    case NONE:
+        alg_type = "none";
+        break;
+    default:
+        assert (0);
+    }
 
     json_t *head_j = json_object();
-    json_object_set_new(head_j, "alg", json_string("ES256"));
+    json_object_set_new(head_j, "alg", json_string(alg_type));
 
-    char *head_s = json_dumps(head_j, 0);
 
-    printf ("Header: %s\n", head_s);
+    char *signing_input = make_signing_input (head_j, claims);
 
-    hlen = base64url_encode_alloc (head_s, strlen(head_s), &head_e);
 
-    printf ("Encoded header: %s\n", head_e);
 
-    char *claims_s = json_dumps(claims, 0);
+    if (NONE == alg)
+    {
+        result = malloc (strlen(signing_input) + 2);
+        assert (NULL != result);
+        strcpy (result, signing_input);
+        result[strlen(signing_input)] = '.';
 
-    printf ("Claims to encode: %s\n", claims_s);
+    }
+    else
+    {
+        assert (NULL != sfunc);
+        uint8_t *sig;
+        size_t sig_len;
+        char *b64sig;
+        size_t b64sig_len;
+        if (sfunc (signing_input, strlen(signing_input), alg, NULL,
+                   &sig, &sig_len))
+        {
+            //failure
+        }
+        else
+        {
+            size_t si_len = strlen(signing_input);
 
-    clen = base64url_encode_alloc (claims_s, strlen(claims_s), &claims_e);
+            b64sig_len = base64url_encode_alloc (sig, sig_len, &b64sig);
 
-    printf ("Encoded claims: %s\n", claims_e);
+            size_t jwt_len = si_len + b64sig_len + 1;
 
-    char *sign_input = malloc(hlen + 1 +clen + 1);
-    assert (NULL != sign_input);
+            result = malloc (jwt_len);
+            assert (NULL != result);
 
-    strcpy (sign_input, head_e);
-    sign_input[hlen] = '.';
+            strcpy (result, signing_input);
+            result[si_len] = '.';
 
-    printf ("Sign input1: %s\n", sign_input);
+            strncpy (result + si_len + 1, b64sig, b64sig_len);
 
-    strcpy (&sign_input[hlen + 1], claims_e);
+            free (b64sig);
+        }
 
-    sign_input[hlen + 1 + clen] = '.';
+    }
 
-    printf ("Sign input2: %s\n", sign_input);
+    json_decref (head_j);
+    free (signing_input);
 
-    return sign_input;
+    return result;
 }
 
+char *
+make_signing_input (const json_t* header, const json_t* claims)
+{
+    char *h_str, *c_str, *sign_input = NULL;
+    size_t hlen, clen, slen;
+
+    hlen = json2b64url (header, &h_str);
+    clen = json2b64url (claims, &c_str);
+
+    if (hlen == 0 || clen == 0)
+        return sign_input;
+
+    slen = hlen + 1 + clen + 1;
+
+    sign_input = (char *) malloc (slen);
+
+    assert (NULL != sign_input);
+    memset (sign_input, 0, slen);
+
+    strcpy (sign_input, h_str);
+    sign_input[hlen] = '.';
+
+    strcpy (sign_input + hlen + 1, c_str);
+
+    free (h_str);
+    free (c_str);
+
+    return sign_input;
+
+}
 size_t
 json2b64url (const json_t *j, char **out)
 {
@@ -234,7 +179,7 @@ json2b64url (const json_t *j, char **out)
 }
 
 json_t *
-b64url2json (char *encoded, size_t len)
+b64url2json (const char *encoded, size_t len)
 {
     assert (NULL != encoded);
 
@@ -295,6 +240,8 @@ jwt2signinput (const char *jwt, gcry_sexp_t *out)
     return rc;
 
 }
+
+
 int
 jws2sig (const char* b64urlsig, gcry_sexp_t *sig)
 {
@@ -422,5 +369,43 @@ FREE_PUB:
 OUT:
 
     return rc;
+
+}
+
+int
+jwt_split (const char *jwt, json_t **header, json_t **claims)
+{
+
+    assert (NULL != jwt);
+
+    char *dot;
+    char *dot_2;
+    int rc = -1;
+    const size_t j_len = strlen (jwt);
+
+    dot = memchr (jwt, (int)'.', j_len);
+
+    if(NULL == dot)
+        return rc;
+
+    if (NULL == (*header = b64url2json (jwt, dot - jwt)))
+        return -2;
+
+    if (NULL == (dot_2 = memrchr (jwt, (int)'.', j_len)))
+    {
+        json_decref (*header);
+        return -3;
+    }
+
+    if (NULL == (*claims = b64url2json (dot + 1, dot_2 - dot - 1)))
+    {
+        json_decref (*header);
+        return -4;
+    }
+
+    rc = 0;
+
+    return rc;
+
 
 }
