@@ -78,3 +78,7 @@
 /test/check_libjosec
 /INSTALL
 /snippet/
+/test/jwtunwrap
+/test/jwtwrap
+/test/.deps/
+/test/.libs/

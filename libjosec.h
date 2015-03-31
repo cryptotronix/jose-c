@@ -24,6 +24,7 @@
 //This is a main header - it includes everything else.
 
 #include "src/jwt.h"
+#include "src/jwk.h"
 #include "src/base64url.h"
 
 #endif // LIBCRYPTOAUTH_H_

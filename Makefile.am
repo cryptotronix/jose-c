@@ -49,6 +49,7 @@ lib_LTLIBRARIES = libjosec-@JOSEC_API_VERSION@.la
 ## from each source file.  Note that it is not necessary to list header files
 ## which are already listed elsewhere in a _HEADERS variable assignment.
 libjosec_@JOSEC_API_VERSION@_la_SOURCES =	src/jwt.c \
+						src/jwk.c \
 						src/base64url.c
 
 
@@ -66,6 +67,7 @@ libjosec_@JOSEC_API_VERSION@_la_LDFLAGS = -version-info $(JOSEC_SO_VERSION)
 josec_includedir = $(includedir)/josec-$(JOSEC_API_VERSION)
 nobase_josec_include_HEADERS = libjosec.h \
                                src/jwt.h \
+			       src/jwk.h
 			       src/base64url.h
 
 
