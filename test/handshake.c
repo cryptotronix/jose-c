@@ -83,6 +83,13 @@ hard_sign (const uint8_t *to_sign, size_t len,
 
     lca_idle (fd);
 
+    lca_set_log_level (DEBUG);
+    lca_print_hex_string ("Signature: ", s.ptr, s.len);
+    lca_set_log_level (INFO);
+
+    printf ("Len: %d\n", s.len);
+
+
     return 0;
 }
 
@@ -246,7 +253,7 @@ get (char *uri)
 
       printf("Response Code: %lu\n", rcode);
       printf("%lu bytes retrieved\n", (long)chunk.size);
-      //printf("Got: %s\n", chunk.memory);
+      printf("Got: %s\n", chunk.memory);
   }
 
   //free(chunk.memory);
@@ -398,6 +405,8 @@ int main(void)
 
 
     char *m1 = build_key_post (jwk);
+
+    printf ("Post key: %s\n", m1);
 
     char *b = combine (postkey, m1);
     char *c = combine (getkey, m1);
