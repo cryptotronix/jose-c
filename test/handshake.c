@@ -39,7 +39,7 @@ start ()
     struct lca_octet_buffer pubkey =
         lca_gen_ecc_key (fd, 0, false);
 
-    lca_set_log_level (DEBUG);
+    //lca_set_log_level (DEBUG);
     lca_print_hex_string ("pubkey", pubkey.ptr, pubkey.len);
 
     lca_idle (fd);
@@ -68,7 +68,7 @@ hard_sign (const uint8_t *to_sign, size_t len,
 
     gcry_md_hash_buffer (GCRY_MD_SHA256, hash.ptr, to_sign, len);
 
-    lca_set_log_level (DEBUG);
+    //lca_set_log_level (DEBUG);
     lca_print_hex_string ("hash: ", hash.ptr, hash.len);
     lca_set_log_level (INFO);
 
@@ -88,22 +88,22 @@ hard_sign (const uint8_t *to_sign, size_t len,
     *out_len = s.len;
 
     /* verify sig */
-    r =
-        gen_nonce (fd, hash);
+    /* r = */
+    /*     gen_nonce (fd, hash); */
 
-    assert (NULL != r.ptr);
+    /* assert (NULL != r.ptr); */
 
-    struct lca_octet_buffer apkb = lca_make_buffer (sizeof (apk));
+    /* struct lca_octet_buffer apkb = lca_make_buffer (sizeof (apk)); */
 
-    memcpy (apkb.ptr, apk, sizeof(apk));
+    /* memcpy (apkb.ptr, apk, sizeof(apk)); */
 
 
 
-    assert (lca_ecc_verify (fd, apkb, s));
+    /* assert (lca_ecc_verify (fd, apkb, s)); */
 
     lca_idle (fd);
 
-    lca_set_log_level (DEBUG);
+    //lca_set_log_level (DEBUG);
     lca_print_hex_string ("Signature: ", s.ptr, s.len);
     lca_set_log_level (INFO);
 
@@ -273,7 +273,7 @@ get (char *uri)
 
       printf("Response Code: %lu\n", rcode);
       printf("%lu bytes retrieved\n", (long)chunk.size);
-      printf("Got: %s\n", chunk.memory);
+      //printf("Got: %s\n", chunk.memory);
   }
 
   //free(chunk.memory);
