@@ -346,12 +346,14 @@ int main(void)
 
     int fd = start();
 
-    if (lca_load_signing_key ("test_keys/test.key", &signing_key))
+    if (lca_load_signing_key ("test_keys/atmel.key", &signing_key))
         return -1;
 
     jwk = gcry_pubkey2jwk (&signing_key);
 
+    assert (NULL != jwk);
 
+    exit (0);
 
     //json_dumpf (jwk, stdout, 0);
 
