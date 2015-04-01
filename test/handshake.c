@@ -25,6 +25,8 @@ char *memory;
     size_t size;
 };
 
+int ecc108_fd;
+
 int
 start ()
 {
@@ -40,10 +42,49 @@ start ()
 
     lca_idle (fd);
 
+    ecc108_fd = fd;
+
     return fd;
 
 }
 
+
+int
+hard_sign (const uint8_t *to_sign, size_t len,
+           jwa_t alg, void *cookie,
+           uint8_t **out, size_t *out_len)
+{
+    int fd = ecc108_fd;
+    int rc = -1;
+    struct lca_octet_buffer hash;
+    gcry_sexp_t sig, digest;
+
+    const unsigned int DLEN = gcry_md_get_algo_dlen (GCRY_MD_SHA256);
+    hash.ptr = malloc (DLEN);
+    hash.len = DLEN;
+    assert (NULL != hash.ptr);
+
+    gcry_md_hash_buffer (GCRY_MD_SHA256, hash.ptr, to_sign, len);
+
+    lca_wakeup(fd);
+
+    struct lca_octet_buffer r =
+        gen_nonce (fd, hash);
+
+    assert (NULL != r.ptr);
+
+    struct lca_octet_buffer s =
+        lca_ecc_sign (fd, 0);
+
+    assert (NULL != s.ptr);
+
+    *out = s.ptr;
+    *out_len = s.len;
+
+    lca_idle (fd);
+
+    return 0;
+}
 
 static size_t
 WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp)
@@ -128,7 +169,7 @@ build_key_post (json_t *jwk)
     json_object_set_new(obj, "chipid3", json_string("2"));
     json_object_set_new(obj, "pubkey", jwk);
 
-    char * jwt = jwt_encode (obj, ES256, soft_sign);
+    char * jwt = jwt_encode (obj, ES256, hard_sign);
 
     return jwt;
 
@@ -352,8 +393,6 @@ int main(void)
     jwk = gcry_pubkey2jwk (&signing_key);
 
     assert (NULL != jwk);
-
-    exit (0);
 
     //json_dumpf (jwk, stdout, 0);
 
