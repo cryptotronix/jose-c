@@ -240,6 +240,7 @@ jws2sig (const char* b64urlsig, gcry_sexp_t *sig)
                                     strlen (b64urlsig),
                                     &raw_sig);
 
+
     if (s_len <= 0)
         return rc;
 
@@ -352,7 +353,12 @@ jwt_verify (const json_t *pub_jwk, const char *jwt)
     }
     else if (0 == strcmp ("ES256", alg))
     {
-        assert (NULL != pub_jwk);
+        if (NULL == pub_jwk)
+        {
+            rc = -4;
+            goto FREE_JSON;
+        }
+
 
         if (rc = jwk2pubkey (pub_jwk, &pubkey))
             goto FREE_JSON;
