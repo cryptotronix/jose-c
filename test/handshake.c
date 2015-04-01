@@ -25,6 +25,26 @@ char *memory;
     size_t size;
 };
 
+int
+start ()
+{
+    int fd = lca_atmel_setup ("/dev/i2c-0", 0x60);
+
+    lca_get_random (fd, true);
+
+    struct lca_octet_buffer pubkey =
+        lca_gen_ecc_key (fd, 0, false);
+
+    lca_set_log_level (DEBUG);
+    lca_print_hex_string ("pubkey", pubkey.ptr, pubkey.len);
+
+    lca_idle (fd);
+
+    return fd;
+
+}
+
+
 static size_t
 WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp)
 {
@@ -323,6 +343,8 @@ int main(void)
     struct timeval tval_before, tval_after, tval_result;
 
     lca_init();
+
+    int fd = start();
 
     if (lca_load_signing_key ("test_keys/test.key", &signing_key))
         return -1;
