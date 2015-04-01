@@ -82,3 +82,6 @@
 /test/jwtwrap
 /test/.deps/
 /test/.libs/
+/TAGS
+/test/TAGS
+/test/handshake

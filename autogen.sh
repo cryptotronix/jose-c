@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with libcrypti2c.  If not, see <http://www.gnu.org/licenses/>.
 
-gnulib-tool --lgpl --libtool --import base64
+gnulib-tool --libtool --import base64 trim
 
 if [ ! -d "m4" ]; then
     mkdir m4

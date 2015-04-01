@@ -21,7 +21,7 @@ check_libjosec_SOURCES = test_jwt.c $(top_builddir)/libjosec.h
 check_libjosec_CFLAGS = @CHECK_CFLAGS@ $(JANSSON_CFLAGS) -I$(top_srcdir)/lib $(CRYPTOAUTH_CFLAGS)
 check_libjosec_LDADD = ../libjosec-0.1.la @CHECK_LIBS@ $(JANSSON_LIBS) $(top_srcdir)/lib/libgnu.la $(CRYPTOAUTH_LIBS)
 
-bin_PROGRAMS = jwtwrap jwtunwrap
+bin_PROGRAMS = jwtwrap jwtunwrap handshake
 jwtwrap_SOURCES = jwt_wrap.c $(top_builddir)/libjosec.h
 jwtwrap_CFLAGS = $(CRYPTOAUTH_CFLAGS) $(JANSSON_CFLAGS) -I$(top_srcdir)/lib -I$(top_builddir)/lib -I$(top_srcdir)/src
 jwtwrap_LDADD = ../libjosec-0.1.la $(JANSSON_LIBS) $(CRYPTOAUTH_LIBS) $(top_srcdir)/lib/libgnu.la
@@ -29,3 +29,7 @@ jwtwrap_LDADD = ../libjosec-0.1.la $(JANSSON_LIBS) $(CRYPTOAUTH_LIBS) $(top_srcd
 jwtunwrap_SOURCES = jwt_unwrap.c $(top_builddir)/libjosec.h
 jwtunwrap_CFLAGS = $(CRYPTOAUTH_CFLAGS) $(JANSSON_CFLAGS) -I$(top_srcdir)/lib -I$(top_builddir)/lib -I$(top_srcdir)/src
 jwtunwrap_LDADD = ../libjosec-0.1.la $(JANSSON_LIBS) $(CRYPTOAUTH_LIBS) $(top_srcdir)/lib/libgnu.la
+
+handshake_SOURCES = handshake.c $(top_builddir)/libjosec.h
+handshake_CFLAGS = $(CRYPTOAUTH_CFLAGS) $(JANSSON_CFLAGS) -I$(top_srcdir)/lib -I$(top_builddir)/lib -I$(top_srcdir)/src
+handshake_LDADD = ../libjosec-0.1.la $(JANSSON_LIBS) $(CRYPTOAUTH_LIBS) $(top_srcdir)/lib/libgnu.la -lcurl
