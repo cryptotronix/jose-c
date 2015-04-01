@@ -66,6 +66,10 @@ hard_sign (const uint8_t *to_sign, size_t len,
 
     gcry_md_hash_buffer (GCRY_MD_SHA256, hash.ptr, to_sign, len);
 
+    lca_set_log_level (DEBUG);
+    lca_print_hex_string ("hash: ", hash.ptr, hash.len);
+    lca_set_log_level (INFO);
+
     lca_wakeup(fd);
 
     struct lca_octet_buffer r =
@@ -401,7 +405,7 @@ int main(void)
 
     assert (NULL != jwk);
 
-    //json_dumpf (jwk, stdout, 0);
+    json_dumpf (jwk, stdout, 0);
 
 
     char *m1 = build_key_post (jwk);
