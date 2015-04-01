@@ -320,10 +320,11 @@ int main(void)
 
     json_t *jwk;
     struct MemoryStruct res;
+    struct timeval tval_before, tval_after, tval_result;
 
     lca_init();
 
-    if (lca_load_signing_key ("/home/jbd/repos/jose-c/test/test_keys/test.key", &signing_key))
+    if (lca_load_signing_key ("test_keys/test.key", &signing_key))
         return -1;
 
     jwk = gcry_pubkey2jwk (&signing_key);
@@ -362,6 +363,9 @@ int main(void)
   free (res.memory);
 
   char *hello = build_hello (sub);
+
+  gettimeofday(&tval_before, NULL);
+
   char *d = combine (posthello, hello);
 
   res = get (d);
@@ -377,12 +381,18 @@ int main(void)
   json_t *done_rsp = verify_done (res.memory, dm_key);
   free (res.memory);
 
+  gettimeofday(&tval_after, NULL);
+
   free (e);
   free (d);
   free (b);
   free (c);
   /* we're done with libcurl, so clean it up */
   curl_global_cleanup();
+
+  timersub(&tval_after, &tval_before, &tval_result);
+
+  printf("Time elapsed: %ld.%06ld\n", (long int)tval_result.tv_sec, (long int)tval_result.tv_usec);
 
   return 0;
 
