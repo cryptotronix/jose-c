@@ -20,12 +20,14 @@ jws_append_signing_input (const char* si, int si_len,
 
     b64sig_len = base64url_encode_alloc (sig, sig_len, &b64sig);
 
-    size_t jwt_len = si_len + b64sig_len + 1;
+    size_t jwt_len = si_len + b64sig_len + 2;
 
     result = malloc (jwt_len);
+    memset (result, 0, jwt_len);
     assert (result);
 
     strncpy (result, si, si_len);
+
     result[si_len] = '.';
 
     strncpy (result + si_len + 1, b64sig, b64sig_len);

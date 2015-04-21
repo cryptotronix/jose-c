@@ -449,6 +449,72 @@ START_TEST(t_hs264)
 }
 END_TEST
 
+START_TEST(t_external_encode)
+{
+    jose_context_t ctx;
+    char *hmac_key = "secret";
+    char *jwt = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWV9";
+
+    json_t *header, *claims;
+    int rc;
+
+    rc = jwt_split (jwt, &header, &claims);
+
+    ck_assert (0 == jose_create_context (&ctx, NULL, NULL));
+
+    ck_assert (ctx.cookie == NULL);
+    ck_assert (ctx.sign_func != NULL);
+
+    ck_assert (ctx.key_container[HS256].key == NULL);
+
+    jose_key_t key;
+    key.alg_type = HS256;
+    key.key = (uint8_t *)hmac_key;
+    key.k_len = strlen (hmac_key);
+
+    ck_assert (0 == jose_add_key (&ctx, key));
+
+    char *result = jwt_encod(&ctx, claims, HS256);
+
+    ck_assert(result);
+
+    printf ("jwt: %s\n", result);
+
+
+
+}
+
+END_TEST
+
+START_TEST(t_context)
+{
+    jose_context_t ctx;
+    char *hmac_key = "secret";
+
+
+    ck_assert (0 == jose_create_context (&ctx, NULL, NULL));
+
+    ck_assert (ctx.cookie == NULL);
+    ck_assert (ctx.sign_func != NULL);
+
+    ck_assert (ctx.key_container[HS256].key == NULL);
+
+    jose_key_t key;
+    key.alg_type = HS256;
+    key.key = (uint8_t *)hmac_key;
+    key.k_len = strlen (hmac_key);
+
+    ck_assert (0 == jose_add_key (&ctx, key));
+
+    ck_assert (ctx.key_container[HS256].key == hmac_key);
+    ck_assert (ctx.key_container[HS256].k_len == strlen (hmac_key));
+    ck_assert (ctx.key_container[HS256].alg_type == HS256);
+
+
+
+}
+END_TEST
+
 Suite * jwt_suite(void)
 {
     Suite *s;
@@ -472,6 +538,8 @@ Suite * jwt_suite(void)
     tcase_add_test(tc_core, t_encode);
     tcase_add_test(tc_core, t_g2jwk);
     tcase_add_test(tc_core, t_hs264);
+    tcase_add_test(tc_core, t_context);
+    tcase_add_test(tc_core, t_external_encode);
     //tcase_add_test(tc_core, test_jwt_verify);
     suite_add_tcase(s, tc_core);
 

@@ -4,37 +4,19 @@
 #include <stdint.h>
 #include <jansson.h>
 #include <gcrypt.h>
+#include "jwa.h"
+#include "context.h"
 
 void
 test_json();
 
-typedef enum
-{
-    INVALID,
-    ES256,
-    HS256,
-    NONE
-} jwa_t;
-
-jwa_t
-jwa2enum (const char *str);
-
-/* Sign function pointer
-   const uint8_t *data_to_sign,
-   size_t dlen,
-   jwa_t alg,
-   void *cookie,
-   uint8_t **out,
-   size_t *out_len
-
-*/
-typedef int (*sign_funcp)(const uint8_t *, size_t len,
-                          jwa_t, void *,
-                          uint8_t **, size_t *);
 
 
 char *
 jwt_encode(json_t *claims, jwa_t alg, sign_funcp sfunc);
+
+char *
+jwt_encod(jose_context_t *ctx, json_t *claims, jwa_t alg);
 
 
 json_t *

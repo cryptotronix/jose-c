@@ -8,6 +8,7 @@
 #include "base64url.h"
 #include <libcryptoauth.h>
 #include "jws.h"
+#include "context.h"
 
 
 jwa_t
@@ -25,7 +26,80 @@ jwa2enum (const char *str)
     return jwa;
 }
 
+char *
+jwt_encod(jose_context_t *ctx, json_t *claims, jwa_t alg)
+{
+    size_t hlen, clen, slen;
+    char *jwt = NULL;
+    char *head_e;
+    char *claims_e;
+    char *result = NULL;
 
+    assert (ctx);
+    assert (claims);
+
+
+    char *alg_type;
+
+    switch (alg)
+    {
+    case ES256:
+        alg_type = "ES256";
+        break;
+    case NONE:
+        alg_type = "none";
+        break;
+    case HS256:
+        alg_type = "HS256";
+        break;
+    default:
+        assert (0);
+    }
+
+    json_t *head_j = json_object();
+    json_object_set_new(head_j, "alg", json_string(alg_type));
+
+
+    char *signing_input = make_signing_input (head_j, claims);
+
+
+
+    if (NONE == alg)
+    {
+        result = malloc (strlen(signing_input) + 2);
+        assert (NULL != result);
+        strcpy (result, signing_input);
+        result[strlen(signing_input)] = '.';
+
+    }
+    else
+    {
+        assert (NULL != ctx->sign_func);
+        uint8_t *sig;
+        size_t sig_len;
+        char *b64sig;
+        size_t b64sig_len;
+        if (ctx->sign_func (signing_input, strlen(signing_input), alg, ctx,
+                            &sig, &sig_len))
+        {
+            //failure
+        }
+        else
+        {
+            size_t si_len = strlen(signing_input);
+
+            result = jws_append_signing_input (signing_input, si_len,
+                                               sig, sig_len);
+
+        }
+
+    }
+
+    json_decref (head_j);
+    free (signing_input);
+
+    return result;
+}
 
 char *
 jwt_encode(json_t *claims, jwa_t alg, sign_funcp sfunc)

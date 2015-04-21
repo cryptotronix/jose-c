@@ -26,5 +26,11 @@
 #include "src/jwt.h"
 #include "src/jwk.h"
 #include "src/base64url.h"
+#include "src/context.h"
+#include <jansson.h>
+#include "src/jwa.h"
+
+char *
+jwt_encode1(jose_context_t *ctx, json_t *claims, jwa_t alg);
 
 #endif // LIBCRYPTOAUTH_H_

@@ -53,7 +53,9 @@ libjosec_@JOSEC_API_VERSION@_la_SOURCES =	src/jwt.c \
 						src/jwk.c \
 						src/base64url.c \
 						src/jws.c \
-						src/hs264.c
+						src/context.c \
+						src/hs264.c \
+						src/soft_crypto.c
 
 
 
@@ -73,6 +75,9 @@ nobase_josec_include_HEADERS = libjosec.h \
 			       src/jwk.h \
 			       src/hs264.h \
 			       src/jws.h \
+			       src/jwa.h \
+			       src/context.h \
+			       src/soft_crypto.h \
 			       src/base64url.h
 
 
