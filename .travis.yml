@@ -1,0 +1,9 @@
+language: c
+compiler:
+  - gcc
+  - clang
+# Change this to your needs
+before_install: sudo apt-get install texinfo libxml2-dev check libgcrypt11-dev
+
+script: ./autogen.sh
+make check
