@@ -54,7 +54,7 @@ libjosec_@JOSEC_API_VERSION@_la_SOURCES =	src/jwt.c \
 						src/base64url.c \
 						src/jws.c \
 						src/context.c \
-						src/hs264.c \
+						src/hs256.c \
 						src/soft_crypto.c
 
 

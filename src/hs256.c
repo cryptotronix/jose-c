@@ -1,10 +1,11 @@
-#include "hs264.h"
+#include "config.h"
+#include "hs256.h"
 #include <gcrypt.h>
 #include <assert.h>
 #include "jws.h"
 
 uint8_t *
-hs264_soft_hmac (const char *signing_input, int si_len,
+hs256_soft_hmac (const char *signing_input, int si_len,
                  const uint8_t *key, int k_len)
 {
     gcry_md_hd_t hd;
@@ -44,7 +45,7 @@ hs256_soft_verify (const char *jwt, const uint8_t *key, int k_len)
     char *si = jws2signing_input (jwt);
     assert (si);
 
-    char *calc = hs264_encode (si, strlen(si), key, k_len, NULL);
+    char *calc = hs256_encode (si, strlen(si), key, k_len, NULL);
 
     int rc = memcmp (jwt, calc, strlen(calc));
 
@@ -56,7 +57,7 @@ hs256_soft_verify (const char *jwt, const uint8_t *key, int k_len)
 }
 
 char *
-hs264_encode(const char *signing_input, int si_len,
+hs256_encode(const char *signing_input, int si_len,
              const uint8_t *key, int k_len,
              sign_funcp sfunc)
 {
