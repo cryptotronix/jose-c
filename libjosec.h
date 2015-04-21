@@ -23,9 +23,19 @@
 
 //This is a main header - it includes everything else.
 
-#include "src/jwa.h"
 #include <jansson.h>
 #include <stdint.h>
+
+typedef enum
+  {
+    INVALID,
+    ES256,
+    HS256,
+    NONE,
+    JWA_MAX
+  } jwa_t;
+
+
 
 typedef struct jose_context_t jct;
 
