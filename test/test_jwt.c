@@ -1,3 +1,4 @@
+#include "config.h"
 #include <check.h>
 #include <stdlib.h>
 #include "../libjosec.h"
@@ -5,6 +6,7 @@
 #include <assert.h>
 #include <gcrypt.h>
 #include <libcryptoauth.h>
+#include "../src/hs264.h"
 
 
 const char * encoded_jwk = "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"f83OJ3D2xF1Bg8vub9tLe1gHMzV76e8Tus9uPHvRVEU\",\"y\":\"x_FEzRu9m36HLN_tue659LNpXW6pCyStikYjKIWI5a0\",\"d\":\"jpsQnnGQmL-YBIffH1136cspYG6-0iY7X1fCE9-E9LI\"}";
@@ -14,6 +16,10 @@ const char *encoded_jwt =
 
 const char *bad_sig_encoded_jwt =
     "eyJhbGciOiJFUzI1NiJ9.eyJpc3MiOiJqb2UiLA0KICJleHAiOjEzMDA4MTkzODAsDQogImh0dHA6Ly9leGFtcGxlLmNvbS9pc19yb290Ijp0cnVlfQ.DtEhU3ljbEg8L38VWAfUAqOyKAM6-Xx-F4GawxaepmXFCgfTjDxw5djxLa8ISlSApmWQxfKTUJqPP3-Kg6Nabc";
+
+const char *jwt_io_hs264_full = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWV9.TJVA95OrM7E2cBab30RMHrHDcEfxjoYZgeFONFh7HgQ";
+
+const char *jwt_io_signing_input = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWV9";
 
 static int
 fill_random(uint8_t *ptr, const int len)
@@ -422,6 +428,27 @@ START_TEST(t_g2jwk)
 }
 END_TEST
 
+
+START_TEST(t_hs264)
+{
+    char *hmac_key = "secret";
+
+    char * result =
+        hs264_encode(jwt_io_signing_input, strlen(jwt_io_signing_input),
+                     (uint8_t *)hmac_key, strlen(hmac_key),
+                     NULL);
+
+    ck_assert (NULL != result);
+    printf ("Calc: %s\n", result);
+    printf ("expected: %s\n", jwt_io_hs264_full);
+
+    ck_assert (0 == strcmp (result, jwt_io_hs264_full));
+
+    free (result);
+
+}
+END_TEST
+
 Suite * jwt_suite(void)
 {
     Suite *s;
@@ -444,6 +471,7 @@ Suite * jwt_suite(void)
     tcase_add_test(tc_core, t_split);
     tcase_add_test(tc_core, t_encode);
     tcase_add_test(tc_core, t_g2jwk);
+    tcase_add_test(tc_core, t_hs264);
     //tcase_add_test(tc_core, test_jwt_verify);
     suite_add_tcase(s, tc_core);
 

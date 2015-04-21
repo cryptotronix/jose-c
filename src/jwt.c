@@ -7,6 +7,7 @@
 #include "jwt.h"
 #include "base64url.h"
 #include <libcryptoauth.h>
+#include "jws.h"
 
 
 jwa_t
@@ -85,24 +86,27 @@ jwt_encode(json_t *claims, jwa_t alg, sign_funcp sfunc)
         {
             size_t si_len = strlen(signing_input);
 
-            b64sig_len = base64url_encode_alloc (sig, sig_len, &b64sig);
+            result = jws_append_signing_input (signing_input, si_len,
+                                               sig, sig_len);
 
-            size_t a;
-            char *b;
+            /* b64sig_len = base64url_encode_alloc (sig, sig_len, &b64sig); */
 
-            a = base64url_decode_alloc (b64sig, b64sig_len, &b);
+            /* size_t a; */
+            /* char *b; */
 
-            size_t jwt_len = si_len + b64sig_len + 1;
+            /* a = base64url_decode_alloc (b64sig, b64sig_len, &b); */
 
-            result = malloc (jwt_len);
-            assert (NULL != result);
+            /* size_t jwt_len = si_len + b64sig_len + 1; */
 
-            strcpy (result, signing_input);
-            result[si_len] = '.';
+            /* result = malloc (jwt_len); */
+            /* assert (NULL != result); */
 
-            strncpy (result + si_len + 1, b64sig, b64sig_len);
+            /* strcpy (result, signing_input); */
+            /* result[si_len] = '.'; */
 
-            free (b64sig);
+            /* strncpy (result + si_len + 1, b64sig, b64sig_len); */
+
+            /* free (b64sig); */
         }
 
     }
@@ -198,7 +202,7 @@ jwt2signinput (const char *jwt, gcry_sexp_t *out)
     int rc = -1;
     int sign_input_len;
 
-    dot = memrchr (jwt, (int)'.', strlen(jwt));
+    dot = (char *)memrchr (jwt, (int)'.', strlen(jwt));
 
     if(NULL == dot)
         return rc;
@@ -238,7 +242,7 @@ jws2sig (const char* b64urlsig, gcry_sexp_t *sig)
 
     s_len = base64url_decode_alloc (b64urlsig,
                                     strlen (b64urlsig),
-                                    &raw_sig);
+                                    (char **)&raw_sig);
 
 
     if (s_len <= 0)

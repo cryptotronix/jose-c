@@ -28,9 +28,10 @@ AM_CFLAGS = -DDATA_DIR=\"$(pkgdatadir)\"
 ## to provide a way for the user to supply additional arguments.
 ACLOCAL_AMFLAGS = ${ACLOCAL_FLAGS} -I m4
 
-libjosec_@JOSEC_API_VERSION@_la_CPPFLAGS = $(CRYPTOAUTH_CFLAGS) $(XML_CFLAGS) $(JANSSON_CFLAGS) -I$(top_srcdir)/lib
+libjosec_@JOSEC_API_VERSION@_la_CPPFLAGS = $(CRYPTOAUTH_CFLAGS) $(XML_CFLAGS) $(JANSSON_CFLAGS) -I$(top_srcdir)/lib $(LIBGCRYPT_CFLAGS)
 
-libjosec_@JOSEC_API_VERSION@_la_LIBADD = $(CRYPTOAUTH_LIBS) $(XML_LIBS) $(JANSSON_LIBS) lib/libgnu.la
+libjosec_@JOSEC_API_VERSION@_la_LIBADD = $(CRYPTOAUTH_LIBS) $(XML_LIBS) $(JANSSON_LIBS) lib/libgnu.la $(LIBGCRYPT_LIBS)
+
 
 ## Define a libtool archive target "libjosec-@EXAMPLE_API_VERSION@.la", with
 ## @JOSEC_API_VERSION@ substituted into the generated Makefile at configure
@@ -50,7 +51,9 @@ lib_LTLIBRARIES = libjosec-@JOSEC_API_VERSION@.la
 ## which are already listed elsewhere in a _HEADERS variable assignment.
 libjosec_@JOSEC_API_VERSION@_la_SOURCES =	src/jwt.c \
 						src/jwk.c \
-						src/base64url.c
+						src/base64url.c \
+						src/jws.c \
+						src/hs264.c
 
 
 
@@ -68,6 +71,8 @@ josec_includedir = $(includedir)/josec-$(JOSEC_API_VERSION)
 nobase_josec_include_HEADERS = libjosec.h \
                                src/jwt.h \
 			       src/jwk.h \
+			       src/hs264.h \
+			       src/jws.h \
 			       src/base64url.h
 
 
