@@ -23,14 +23,61 @@
 
 //This is a main header - it includes everything else.
 
-#include "src/jwt.h"
-#include "src/jwk.h"
-#include "src/base64url.h"
-#include "src/context.h"
-#include <jansson.h>
 #include "src/jwa.h"
+#include <jansson.h>
+#include <stdint.h>
+
+typedef struct jose_context_t jct;
+
+/* Sign function pointer
+   const uint8_t *data_to_sign,
+   size_t dlen,
+   jwa_t alg,
+   jose_context_t *cookie,
+   uint8_t **out,
+   size_t *out_len
+
+*/
+typedef int (*sign_funcp)(const uint8_t *, size_t len,
+                          jwa_t, const jct *,
+                          uint8_t **, size_t *);
+
+typedef int (*verify_funcp)(const char *,
+                            jwa_t, const jct *);
+
+
+typedef struct
+{
+  jwa_t alg_type;
+  uint8_t *key;
+  unsigned int k_len;
+} jose_key_t;
+
+typedef struct
+{
+  sign_funcp sign_func;
+  verify_funcp verify_func;
+  jose_key_t key_container[JWA_MAX];
+  void *cookie;
+} jose_context_t;
+
+
+int
+jose_create_context (jose_context_t *ctx, sign_funcp sf, verify_funcp vf,
+                     void *cookie);
+
+int
+jose_add_key (jose_context_t *ctx, jose_key_t key);
+
+void
+jose_close_context (jose_context_t *ctx);
 
 char *
-jwt_encode1(jose_context_t *ctx, json_t *claims, jwa_t alg);
+jwt_encode(jose_context_t *ctx, json_t *claims, jwa_t alg);
+
+int
+jwt_verify_sig(jose_context_t *ctx, const char *jwt, jwa_t alg);
+
+
 
 #endif // LIBCRYPTOAUTH_H_

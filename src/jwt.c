@@ -8,7 +8,7 @@
 #include "base64url.h"
 #include <libcryptoauth.h>
 #include "jws.h"
-#include "context.h"
+#include "../libjosec.h"
 
 
 jwa_t
@@ -27,7 +27,7 @@ jwa2enum (const char *str)
 }
 
 char *
-jwt_encod(jose_context_t *ctx, json_t *claims, jwa_t alg)
+jwt_encode(jose_context_t *ctx, json_t *claims, jwa_t alg)
 {
     size_t hlen, clen, slen;
     char *jwt = NULL;
@@ -102,7 +102,7 @@ jwt_encod(jose_context_t *ctx, json_t *claims, jwa_t alg)
 }
 
 char *
-jwt_encode(json_t *claims, jwa_t alg, sign_funcp sfunc)
+jwt_encode_old(json_t *claims, jwa_t alg, sign_funcp sfunc)
 {
     size_t hlen, clen, slen;
     char *jwt = NULL;
@@ -400,6 +400,17 @@ jwk2pubkey (const json_t *jwk, gcry_sexp_t *pubkey)
     free (q);
 
     return rc;
+
+}
+
+int
+jwt_verify_sig(jose_context_t *ctx, const char *jwt, jwa_t alg)
+{
+    assert (ctx);
+    assert (jwt);
+    assert (ctx->verify_func);
+
+    return ctx->verify_func (jwt, alg, ctx);
 
 }
 

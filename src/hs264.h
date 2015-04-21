@@ -12,6 +12,7 @@ hs264_encode(const char *signing_input, int si_len,
              const uint8_t *key, int k_len,
              sign_funcp sfunc);
 
-
+int
+hs256_soft_verify (const char *jwt, const uint8_t *key, int k_len);
 
 #endif

@@ -70,15 +70,7 @@ libjosec_@JOSEC_API_VERSION@_la_LDFLAGS = -version-info $(JOSEC_SO_VERSION)
 ## installation directory.  This only works if the directory hierarchy in the
 ## source tree matches the hierarchy at the install location, however.
 josec_includedir = $(includedir)/josec-$(JOSEC_API_VERSION)
-nobase_josec_include_HEADERS = libjosec.h \
-                               src/jwt.h \
-			       src/jwk.h \
-			       src/hs264.h \
-			       src/jws.h \
-			       src/jwa.h \
-			       src/context.h \
-			       src/soft_crypto.h \
-			       src/base64url.h
+nobase_josec_include_HEADERS = libjosec.h
 
 
 ## Data files

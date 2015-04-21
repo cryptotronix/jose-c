@@ -53,7 +53,7 @@ int sign_callback_called = 0;
 
 static int
 sign (const uint8_t *to_sign, size_t len,
-      jwa_t alg, void *cookie,
+      jwa_t alg, const jct* jct,
       uint8_t **out, size_t *out_len)
 {
     sign_callback_called += 1;
@@ -115,7 +115,7 @@ START_TEST(test_jwt_creation)
 
     json_object_set_new(obj, "Claims", json_integer(42));
 
-    char *str = jwt_encode (obj, ES256, sign);
+    char *str = jwt_encode_old (obj, ES256, sign);
 
     printf("Result: %s\n", str);
 
@@ -156,7 +156,7 @@ START_TEST(t_encode)
 
     mark_point();
 
-    jwt = jwt_encode (claims_j, ES256, sign);
+    jwt = jwt_encode_old (claims_j, ES256, sign);
 
     numtimes += 1;
 
@@ -368,7 +368,7 @@ START_TEST(t_encode_none)
     char *jwt;
 
 
-    jwt = jwt_encode(claims_j, NONE, NULL);
+    jwt = jwt_encode_old(claims_j, NONE, NULL);
 
     ck_assert (NULL != jwt);
 
@@ -460,7 +460,7 @@ START_TEST(t_external_encode)
 
     rc = jwt_split (jwt, &header, &claims);
 
-    ck_assert (0 == jose_create_context (&ctx, NULL, NULL));
+    ck_assert (0 == jose_create_context (&ctx, NULL, NULL, NULL));
 
     ck_assert (ctx.cookie == NULL);
     ck_assert (ctx.sign_func != NULL);
@@ -474,11 +474,17 @@ START_TEST(t_external_encode)
 
     ck_assert (0 == jose_add_key (&ctx, key));
 
-    char *result = jwt_encod(&ctx, claims, HS256);
+    char *result = jwt_encode(&ctx, claims, HS256);
 
     ck_assert(result);
 
     printf ("jwt: %s\n", result);
+
+    ck_assert (0 == jwt_verify_sig (&ctx, result, HS256));
+
+    result[10] = 1;
+
+    ck_assert (0 != jwt_verify_sig (&ctx, result, HS256));
 
 
 
@@ -492,7 +498,7 @@ START_TEST(t_context)
     char *hmac_key = "secret";
 
 
-    ck_assert (0 == jose_create_context (&ctx, NULL, NULL));
+    ck_assert (0 == jose_create_context (&ctx, NULL, NULL, NULL));
 
     ck_assert (ctx.cookie == NULL);
     ck_assert (ctx.sign_func != NULL);

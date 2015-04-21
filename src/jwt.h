@@ -5,7 +5,7 @@
 #include <jansson.h>
 #include <gcrypt.h>
 #include "jwa.h"
-#include "context.h"
+#include "../libjosec.h"
 
 void
 test_json();
@@ -13,11 +13,7 @@ test_json();
 
 
 char *
-jwt_encode(json_t *claims, jwa_t alg, sign_funcp sfunc);
-
-char *
-jwt_encod(jose_context_t *ctx, json_t *claims, jwa_t alg);
-
+jwt_encode_old(json_t *claims, jwa_t alg, sign_funcp sfunc);
 
 json_t *
 b64url2json (const char *encoded, size_t len);

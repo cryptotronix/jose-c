@@ -140,7 +140,7 @@ f2jwt (FILE *fp, jwa_t alg, sign_funcp sfunc)
     if (NULL == (j = file2json (fp)))
         return NULL;
 
-    jwt = jwt_encode (j, alg, sfunc);
+    jwt = jwt_encode_old (j, alg, sfunc);
 
     json_decref (j);
 

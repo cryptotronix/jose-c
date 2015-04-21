@@ -196,7 +196,7 @@ build_key_post (json_t *jwk)
     json_object_set_new(obj, "chipid3", json_string("2"));
     json_object_set_new(obj, "pubkey", jwk);
 
-    char * jwt = jwt_encode (obj, ES256, hard_sign);
+    char * jwt = jwt_encode_old (obj, ES256, hard_sign);
 
     return jwt;
 
@@ -331,7 +331,7 @@ build_hello (char *sub)
     json_object_set_new(obj, "exp", json_integer (current_time + 60 * 5));
 
 
-    char * jwt = jwt_encode (obj, ES256, hard_sign);
+    char * jwt = jwt_encode_old (obj, ES256, hard_sign);
 
     assert (NULL != jwt);
 
@@ -368,7 +368,7 @@ build_hello_rsp (char *sub, json_t *hellorsp)
     json_object_set_new(obj, "exp", json_integer (current_time + 60 * 5));
 
 
-    char * jwt = jwt_encode (obj, ES256, hard_sign);
+    char * jwt = jwt_encode_old (obj, ES256, hard_sign);
 
     assert (NULL != jwt);
 

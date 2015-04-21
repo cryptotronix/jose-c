@@ -36,3 +36,27 @@ jws_append_signing_input (const char* si, int si_len,
 
     return result;
 }
+
+char *
+jws2signing_input (const char *jwt)
+{
+    assert (NULL != jwt);
+
+    char *dot;
+    int sign_input_len;
+    char *si;
+
+    dot = (char *)memrchr (jwt, (int)'.', strlen(jwt));
+
+    if(NULL == dot)
+        return NULL;
+
+    sign_input_len = dot - jwt + 1;
+
+    si = malloc(sign_input_len);
+    memset (si, 0, sign_input_len);
+
+    memcpy(si, jwt, dot - jwt);
+
+    return si;
+}

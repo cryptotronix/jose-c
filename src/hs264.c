@@ -35,6 +35,26 @@ hs264_soft_hmac (const char *signing_input, int si_len,
 
 }
 
+int
+hs256_soft_verify (const char *jwt, const uint8_t *key, int k_len)
+{
+
+    assert (key);
+
+    char *si = jws2signing_input (jwt);
+    assert (si);
+
+    char *calc = hs264_encode (si, strlen(si), key, k_len, NULL);
+
+    int rc = memcmp (jwt, calc, strlen(calc));
+
+    free (si);
+    free (calc);
+
+    return rc;
+
+}
+
 char *
 hs264_encode(const char *signing_input, int si_len,
              const uint8_t *key, int k_len,

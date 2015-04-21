@@ -1,9 +1,11 @@
-#include "context.h"
+#include "config.h"
+#include "../libjosec.h"
 #include <assert.h>
 #include "soft_crypto.h"
 
 int
-jose_create_context (jose_context_t *ctx, sign_funcp sf, void *cookie)
+jose_create_context (jose_context_t *ctx, sign_funcp sf, verify_funcp vf,
+                     void *cookie)
 {
     int x;
 
@@ -13,6 +15,11 @@ jose_create_context (jose_context_t *ctx, sign_funcp sf, void *cookie)
         ctx->sign_func = jose_soft_sign;
     else
         ctx->sign_func = sf;
+
+    if (!vf)
+        ctx->verify_func = jose_soft_verify;
+    else
+        ctx->verify_func = vf;
 
     ctx->cookie = cookie;
 
