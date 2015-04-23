@@ -25,7 +25,8 @@ hs256_soft_hmac (const char *signing_input, int si_len,
 
     gcry_md_write (hd, signing_input, si_len);
 
-    assert (tmp = gcry_md_read (hd, GCRY_MD_SHA256));
+    tmp = gcry_md_read (hd, GCRY_MD_SHA256);
+    assert (tmp);
 
     memcpy (digest, tmp, d_len);
 
@@ -79,7 +80,8 @@ hs256_encode(const char *signing_input, int si_len,
 
         gcry_md_write (hd, signing_input, si_len);
 
-        assert (digest = gcry_md_read (hd, GCRY_MD_SHA256));
+        digest = gcry_md_read (hd, GCRY_MD_SHA256);
+        assert (digest);
     }
     else if (NULL != sfunc)
     {

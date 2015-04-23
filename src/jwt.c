@@ -201,7 +201,7 @@ make_signing_input (const json_t* header, const json_t* claims)
     clen = json2b64url (claims, &c_str);
 
     if (hlen == 0 || clen == 0)
-        return sign_input;
+        goto OUT;
 
     slen = hlen + 1 + clen + 1;
 
@@ -215,6 +215,7 @@ make_signing_input (const json_t* header, const json_t* claims)
 
     strcpy (sign_input + hlen + 1, c_str);
 
+OUT:
     free (h_str);
     free (c_str);
 
@@ -253,7 +254,7 @@ b64url2json (const char *encoded, size_t len)
     d_len = base64url_decode_alloc (encoded, len, &str);
 
     if (d_len <= 0)
-        return ;
+        return NULL;
 
     j = json_loadb(str, d_len, 0, &jerr);
 
@@ -325,13 +326,17 @@ jws2sig (const char* b64urlsig, gcry_sexp_t *sig)
 
     /* Currently only support ECDSA P-256 */
     if (s_len != 64)
-        return -4;
+    {
+        rc = -4;
+        goto OUT;
+    }
 
     rc = gcry_sexp_build (sig, NULL,
                           "(sig-val(ecdsa(r %b)(s %b)))",
                           32, raw_sig,
                           32, raw_sig + 32);
 
+OUT:
     free (raw_sig);
 
     return rc;
@@ -376,8 +381,8 @@ jwk2pubkey (const json_t *jwk, gcry_sexp_t *pubkey)
                                     strlen (json_string_value (j_y)),
                                     (char **)&y);
 
-    if (x_len <= 0 || y_len <= 0)
-        return rc;
+    if (x_len <= 0 || y_len <= 0 || x_len > 256 || y_len > 256)
+        goto OUT;
 
     q_len = x_len + y_len + 1;
     q = (uint8_t *)malloc(q_len);
@@ -395,9 +400,11 @@ jwk2pubkey (const json_t *jwk, gcry_sexp_t *pubkey)
                           "  (q %b)"
                           "))", q_len, q);
 
+    free (q);
+OUT:
     free (x);
     free (y);
-    free (q);
+
 
     return rc;
 
