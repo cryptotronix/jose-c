@@ -11,13 +11,15 @@ jose_create_context (jose_context_t *ctx, sign_funcp sf, verify_funcp vf,
 
     assert (ctx);
 
-    if (!sf)
+    if (NULL == sf)
         ctx->sign_func = jose_soft_sign;
     else
         ctx->sign_func = sf;
 
-    if (!vf)
+    if (NULL == vf)
+    {
         ctx->verify_func = jose_soft_verify;
+    }
     else
         ctx->verify_func = vf;
 

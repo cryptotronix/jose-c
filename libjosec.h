@@ -88,6 +88,9 @@ jwt_encode(jose_context_t *ctx, json_t *claims, jwa_t alg);
 int
 jwt_verify_sig(jose_context_t *ctx, const char *jwt, jwa_t alg);
 
+int
+jwt_decode (const char *jwt, json_t **header, json_t **claims);
+
 
 
 #endif // LIBCRYPTOAUTH_H_

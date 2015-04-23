@@ -51,6 +51,26 @@ jose_soft_verify(const char *jwt, jwa_t alg, jose_context_t *ctx)
         rc = hs256_soft_verify (jwt, key, k_len);
 
     }
+    else if (alg == NONE)
+    {
+        /* check to see if alg is really set to none */
+        json_t *h, *c;
+        rc = jwt_decode (jwt, &h, &c);
+        if (rc == 0)
+        {
+            const char *field = "alg";
+            json_t *alg_type = json_object_get(h, field);
+            if (alg_type)
+            {
+                rc = strncmp (json_string_value (alg_type), "none", strlen("none"));
+            }
+            else
+                rc = -2;
+
+            json_decref (h);
+            json_decref (c);
+        }
+    }
 
     return rc;
 

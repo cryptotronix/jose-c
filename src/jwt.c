@@ -490,6 +490,12 @@ OUT:
 }
 
 int
+jwt_decode (const char *jwt, json_t **header, json_t **claims)
+{
+    return jwt_split (jwt, header, claims);
+}
+
+int
 jwt_split (const char *jwt, json_t **header, json_t **claims)
 {
 

@@ -7,6 +7,7 @@
 #include <gcrypt.h>
 #include <libcryptoauth.h>
 #include "../src/hs256.h"
+#include "soft_crypto.h"
 
 
 const char * encoded_jwk = "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"f83OJ3D2xF1Bg8vub9tLe1gHMzV76e8Tus9uPHvRVEU\",\"y\":\"x_FEzRu9m36HLN_tue659LNpXW6pCyStikYjKIWI5a0\",\"d\":\"jpsQnnGQmL-YBIffH1136cspYG6-0iY7X1fCE9-E9LI\"}";
@@ -463,7 +464,8 @@ START_TEST(t_external_encode)
     ck_assert (0 == jose_create_context (&ctx, NULL, NULL, NULL));
 
     ck_assert (ctx.cookie == NULL);
-    ck_assert (ctx.sign_func != NULL);
+    ck_assert (ctx.verify_func == jose_soft_verify);
+    ck_assert (ctx.sign_func == jose_soft_sign);
 
     ck_assert (ctx.key_container[HS256].key == NULL);
 
@@ -521,6 +523,35 @@ START_TEST(t_context)
 }
 END_TEST
 
+START_TEST(t_alg_none)
+{
+    printf ("In t_alg_none\n");
+    json_t *claims_j = json_object();
+    json_object_set_new(claims_j, "sub", json_string("Bob"));
+
+    jose_context_t ctx;
+
+    printf ("About to call create\n");
+    ck_assert (0 == jose_create_context (&ctx, NULL, NULL, NULL));
+    ck_assert (ctx.sign_func != NULL);
+    ck_assert (ctx.verify_func != NULL);
+
+    printf ("About to call encode\n");
+    char * jwt =
+        jwt_encode(&ctx, claims_j, NONE);
+
+    ck_assert (NULL != jwt);
+    printf ("JWT NONE: %s\n", jwt);
+
+    ck_assert (ctx.verify_func == jose_soft_verify);
+
+    ck_assert (0 == jwt_verify_sig(&ctx, jwt, NONE));
+
+
+
+}
+END_TEST
+
 Suite * jwt_suite(void)
 {
     Suite *s;
@@ -546,6 +577,7 @@ Suite * jwt_suite(void)
     tcase_add_test(tc_core, t_hs256);
     tcase_add_test(tc_core, t_context);
     tcase_add_test(tc_core, t_external_encode);
+    tcase_add_test(tc_core, t_alg_none);
     //tcase_add_test(tc_core, test_jwt_verify);
     suite_add_tcase(s, tc_core);
 
