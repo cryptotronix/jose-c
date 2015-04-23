@@ -478,7 +478,7 @@ START_TEST(t_external_encode)
 
     char *result = jwt_encode(&ctx, claims, HS256);
 
-    ck_assert(result);
+    ck_assert(NULL != result);
 
     printf ("jwt: %s\n", result);
 
@@ -531,12 +531,10 @@ START_TEST(t_alg_none)
 
     jose_context_t ctx;
 
-    printf ("About to call create\n");
     ck_assert (0 == jose_create_context (&ctx, NULL, NULL, NULL));
     ck_assert (ctx.sign_func != NULL);
     ck_assert (ctx.verify_func != NULL);
 
-    printf ("About to call encode\n");
     char * jwt =
         jwt_encode(&ctx, claims_j, NONE);
 
@@ -546,6 +544,20 @@ START_TEST(t_alg_none)
     ck_assert (ctx.verify_func == jose_soft_verify);
 
     ck_assert (0 == jwt_verify_sig(&ctx, jwt, NONE));
+
+
+    json_t *h, *c;
+    assert (0 == jwt_decode (jwt, &h, &c));
+
+    json_t *sub = json_object_get(c, "sub");
+    assert (0 == strcmp (json_string_value (sub), "Bob"));
+
+
+    json_decref (h);
+    json_decref (c);
+    json_decref (claims_j);
+    json_decref (sub);
+
 
 
 
