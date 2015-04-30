@@ -62,12 +62,13 @@ jwt_encode(jose_context_t *ctx, json_t *claims, jwa_t alg)
 
     char *signing_input = make_signing_input (head_j, claims);
 
-
-
     if (NONE == alg)
     {
-        result = malloc (strlen(signing_input) + 2);
+        int new_len = strlen(signing_input) + 2;
+        result = malloc (new_len);
         assert (NULL != result);
+        memset (result, 0, new_len);
+
         strcpy (result, signing_input);
         result[strlen(signing_input)] = '.';
 
@@ -188,6 +189,7 @@ jwt_encode_old(json_t *claims, jwa_t alg, sign_funcp sfunc)
     json_decref (head_j);
     free (signing_input);
 
+
     return result;
 }
 
@@ -196,6 +198,8 @@ make_signing_input (const json_t* header, const json_t* claims)
 {
     char *h_str, *c_str, *sign_input = NULL;
     size_t hlen, clen, slen;
+
+    assert (header); assert (claims);
 
     hlen = json2b64url (header, &h_str);
     clen = json2b64url (claims, &c_str);

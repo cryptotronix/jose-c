@@ -564,6 +564,29 @@ START_TEST(t_alg_none)
 }
 END_TEST
 
+START_TEST(t_msg)
+{
+    char *json= "{\"aud\": [\"aud\"], \"nbf\": 1430401336, \"exp\": 1430401636,"
+        " \"sub\": \"sub\", \"version\": 1, \"kid\": \"none\"}";
+
+
+    json_t *j = json_loads(json, 0, NULL);
+
+    ck_assert (j != NULL);
+
+    jose_context_t ctx;
+    ck_assert (0 == jose_create_context (&ctx, NULL, NULL, NULL));
+    char *jwt = jwt_encode(&ctx, j, NONE);
+
+    ck_assert (NULL != jwt);
+    printf("jwt t_msg: %s\n", jwt);
+
+    json_decref (j);
+    free (jwt);
+
+}
+END_TEST
+
 Suite * jwt_suite(void)
 {
     Suite *s;
@@ -590,6 +613,7 @@ Suite * jwt_suite(void)
     tcase_add_test(tc_core, t_context);
     tcase_add_test(tc_core, t_external_encode);
     tcase_add_test(tc_core, t_alg_none);
+    tcase_add_test(tc_core, t_msg);
     //tcase_add_test(tc_core, test_jwt_verify);
     suite_add_tcase(s, tc_core);
 

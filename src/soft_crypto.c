@@ -2,6 +2,7 @@
 #include "soft_crypto.h"
 #include <assert.h>
 #include "hs256.h"
+#include <syslog.h>
 
 int
 jose_soft_sign(const uint8_t *signing_input, size_t si_len,
@@ -70,6 +71,11 @@ jose_soft_verify(const char *jwt, jwa_t alg, jose_context_t *ctx)
             json_decref (h);
             json_decref (c);
         }
+        else
+        {
+            syslog (LOG_DEBUG, "JOSEC: Falied to decoded JWT");
+        }
+
     }
 
     return rc;
