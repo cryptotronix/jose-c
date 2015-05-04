@@ -33,7 +33,7 @@ PKG_CHECK_MODULES([CHECK], [check >= 0.9.8])
 PKG_CHECK_MODULES([JANSSON], [jansson])
 
 #Check for libcryptoauth
-PKG_CHECK_MODULES([CRYPTOAUTH], [cryptoauth-0.1])
+PKG_CHECK_MODULES([CRYPTOAUTH], [cryptoauth-0.2])
 
 #Check for libgcrypt
 AM_PATH_LIBGCRYPT([], [], AC_MSG_ERROR([libgcrypt is not installed]))
