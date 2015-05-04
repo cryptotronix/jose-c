@@ -60,7 +60,7 @@ AC_SUBST([JOSEC_API_VERSION], [0.3])
 # Override the template file name of the generated .pc file, so that there
 # is no need to rename the template file when the API version changes.
 AC_CONFIG_FILES([Makefile test/Makefile lib/Makefile
-                 josec-${JOSEC_API_VERSION}.pc:josec.pc.in])
+                 josec.pc:josec.pc.in])
 AC_OUTPUT
 
 

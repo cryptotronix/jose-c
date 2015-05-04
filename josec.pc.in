@@ -8,5 +8,5 @@ Description: Library for produce JOSE messages
 Version: @PACKAGE_VERSION@
 Libs.private: -lgcrypt
 URL: @PACKAGE_URL@
-Libs: -L${libdir} -ljosec-@JOSEC_API_VERSION@
+Libs: -L${libdir} -ljosec
 Cflags: -I${includedir}/josec-@JOSEC_API_VERSION@ -I${libdir}/josec-@JOSEC_API_VERSION@/include

@@ -97,7 +97,7 @@ josec_libincludedir = $(libdir)/josec-$(JOSEC_API_VERSION)/include
 ## pkg-config files are also used for architecture-independent data packages,
 ## in which case the correct install location would be $(datadir)/pkgconfig.
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = josec-$(JOSEC_API_VERSION).pc
+pkgconfig_DATA = josec.pc
 
 ## Define an independent executable script for inclusion in the distribution
 ## archive.  However, it will not be installed on an end user's system due to
