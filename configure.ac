@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with libcryptoauth.  If not, see <http://www.gnu.org/licenses/>.
 
-AC_INIT([libjose-c], [0.3], [bugs@cryptotronix.com], [josec],
+AC_INIT([libjose-c], [0.3.1], [bugs@cryptotronix.com], [josec],
                      [https://github.com/cryptotronix/jose-c])
 AC_PREREQ([2.59])
 AM_INIT_AUTOMAKE([1.10 -Wall no-define])
@@ -33,7 +33,7 @@ PKG_CHECK_MODULES([CHECK], [check >= 0.9.8])
 PKG_CHECK_MODULES([JANSSON], [jansson])
 
 #Check for libcryptoauth
-PKG_CHECK_MODULES([CRYPTOAUTH], [cryptoauth-0.2])
+PKG_CHECK_MODULES([CRYPTOAUTH], [cryptoauth >= 0.3])
 
 #Check for libgcrypt
 AM_PATH_LIBGCRYPT([], [], AC_MSG_ERROR([libgcrypt is not installed]))
