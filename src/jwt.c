@@ -249,13 +249,14 @@ b64url2json (const char *encoded, size_t len)
     d_len = base64url_decode_alloc ((const uint8_t *)encoded, len, &str);
 
     if (d_len <= 0)
-        return NULL;
+        goto OUT;
 
     j = json_loadb(str, d_len, 0, &jerr);
 
     if (!j)
         fprintf(stderr, "%s\n", jerr.text);
 
+OUT:
     free (str);
 
     return j;
@@ -316,7 +317,7 @@ jws2sig (const char* b64urlsig, gcry_sexp_t *sig)
 
 
     if (s_len <= 0)
-        return rc;
+        goto OUT;
 
 
     /* Currently only support ECDSA P-256 */
