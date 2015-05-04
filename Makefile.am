@@ -28,9 +28,11 @@ AM_CFLAGS = -DDATA_DIR=\"$(pkgdatadir)\"
 ## to provide a way for the user to supply additional arguments.
 ACLOCAL_AMFLAGS = ${ACLOCAL_FLAGS} -I m4
 
-libjosec_@JOSEC_API_VERSION@_la_CPPFLAGS = $(CRYPTOAUTH_CFLAGS) $(XML_CFLAGS) $(JANSSON_CFLAGS) -I$(top_srcdir)/lib $(LIBGCRYPT_CFLAGS)
+libjosec_la_CPPFLAGS = $(CRYPTOAUTH_CFLAGS) $(XML_CFLAGS) $(JANSSON_CFLAGS) \
+		       -I$(top_srcdir)/lib $(LIBGCRYPT_CFLAGS)
 
-libjosec_@JOSEC_API_VERSION@_la_LIBADD = $(CRYPTOAUTH_LIBS) $(XML_LIBS) $(JANSSON_LIBS) lib/libgnu.la $(LIBGCRYPT_LIBS)
+libjosec_la_LIBADD = $(CRYPTOAUTH_LIBS) $(XML_LIBS) $(JANSSON_LIBS) \
+                     lib/libgnu.la $(LIBGCRYPT_LIBS)
 
 
 ## Define a libtool archive target "libjosec-@EXAMPLE_API_VERSION@.la", with
@@ -39,7 +41,7 @@ libjosec_@JOSEC_API_VERSION@_la_LIBADD = $(CRYPTOAUTH_LIBS) $(XML_LIBS) $(JANSSO
 ## The libtool archive file (.la) will be installed into the directory named
 ## by the predefined variable $(bindir), along with the actual shared library
 ## file (.so).
-lib_LTLIBRARIES = libjosec-@JOSEC_API_VERSION@.la
+lib_LTLIBRARIES = libjosec.la
 
 ## Define the source file list for the "libjosec-@JOSEC_API_VERSION@.la"
 ## target.  Note that @JOSEC_API_VERSION@ is not interpreted by Automake and
@@ -49,20 +51,20 @@ lib_LTLIBRARIES = libjosec-@JOSEC_API_VERSION@.la
 ## rules which invoke the C++ compiler to produce a libtool object file (.lo)
 ## from each source file.  Note that it is not necessary to list header files
 ## which are already listed elsewhere in a _HEADERS variable assignment.
-libjosec_@JOSEC_API_VERSION@_la_SOURCES =	src/jwt.c \
-						src/jwk.c \
-						src/base64url.c \
-						src/jws.c \
-						src/context.c \
-						src/hs256.c \
-						src/soft_crypto.c
+libjosec_la_SOURCES =	src/jwt.c \
+                        src/jwk.c \
+			src/base64url.c \
+			src/jws.c \
+			src/context.c \
+			src/hs256.c \
+			src/soft_crypto.c
 
 
 
 ## Instruct libtool to include ABI version information in the generated shared
 ## library file (.so).  The library ABI version is defined in configure.ac, so
 ## that all version information is kept in one place.
-libjosec_@JOSEC_API_VERSION@_la_LDFLAGS = -version-info $(JOSEC_SO_VERSION)
+libjosec_la_LDFLAGS = -version-info $(JOSEC_SO_VERSION) -release $(JOSEC_API_VERSION)
 
 ## Define the list of public header files and their install location.  The
 ## nobase_ prefix instructs Automake to not strip the directory part from each
