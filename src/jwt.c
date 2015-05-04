@@ -29,17 +29,14 @@ jwa2enum (const char *str)
 char *
 jwt_encode(jose_context_t *ctx, const json_t *claims, jwa_t alg)
 {
-    size_t hlen, clen, slen;
-    char *jwt = NULL;
-    char *head_e;
-    char *claims_e;
+
     char *result = NULL;
 
     assert (ctx);
     assert (claims);
 
 
-    char *alg_type;
+    const char *alg_type;
 
     switch (alg)
     {
@@ -77,9 +74,8 @@ jwt_encode(jose_context_t *ctx, const json_t *claims, jwa_t alg)
         assert (NULL != ctx->sign_func);
         uint8_t *sig;
         size_t sig_len;
-        char *b64sig;
-        size_t b64sig_len;
-        if (ctx->sign_func (signing_input, strlen(signing_input), alg, ctx,
+        if (ctx->sign_func ((uint8_t *)signing_input, strlen(signing_input),
+                            alg, ctx,
                             &sig, &sig_len))
         {
             //failure
@@ -104,11 +100,8 @@ jwt_encode(jose_context_t *ctx, const json_t *claims, jwa_t alg)
 char *
 jwt_encode_old(json_t *claims, jwa_t alg, sign_funcp sfunc)
 {
-    size_t hlen, clen, slen;
-    char *jwt = NULL;
-    char *head_e;
-    char *claims_e;
     char *result = NULL;
+    size_t sig_len;
 
 
     assert (NULL != claims);
@@ -148,10 +141,7 @@ jwt_encode_old(json_t *claims, jwa_t alg, sign_funcp sfunc)
     {
         assert (NULL != sfunc);
         uint8_t *sig;
-        size_t sig_len;
-        char *b64sig;
-        size_t b64sig_len;
-        if (sfunc (signing_input, strlen(signing_input), alg, NULL,
+        if (sfunc ((const uint8_t *)signing_input, strlen(signing_input), alg, NULL,
                    &sig, &sig_len))
         {
             //failure
@@ -233,9 +223,11 @@ json2b64url (const json_t *j, char **out)
     size_t s = 0;
     char *str;
 
-    if (str = json_dumps(j, 0))
+    str = json_dumps(j, 0);
+
+    if (str)
     {
-        s = base64url_encode_alloc (str, strlen(str), out);
+        s = base64url_encode_alloc ((uint8_t *)str, strlen(str), out);
 
         free (str);
     }
@@ -254,7 +246,7 @@ b64url2json (const char *encoded, size_t len)
 
     json_error_t jerr;
 
-    d_len = base64url_decode_alloc (encoded, len, &str);
+    d_len = base64url_decode_alloc ((const uint8_t *)encoded, len, &str);
 
     if (d_len <= 0)
         return NULL;
@@ -318,7 +310,7 @@ jws2sig (const char* b64urlsig, gcry_sexp_t *sig)
 
     int rc = -1;
 
-    s_len = base64url_decode_alloc (b64urlsig,
+    s_len = base64url_decode_alloc ((const uint8_t *)b64urlsig,
                                     strlen (b64urlsig),
                                     (char **)&raw_sig);
 
@@ -345,7 +337,7 @@ OUT:
     return rc;
 }
 
-int
+static int
 jwt2sig (const char* jwt, gcry_sexp_t *sig)
 {
     assert (NULL != jwt);
@@ -458,14 +450,16 @@ jwt_verify (const json_t *pub_jwk, const char *jwt)
             goto FREE_JSON;
         }
 
-
-        if (rc = jwk2pubkey (pub_jwk, &pubkey))
+        rc = jwk2pubkey (pub_jwk, &pubkey);
+        if (rc)
             goto FREE_JSON;
 
-        if (rc = jwt2signinput (jwt, &digest))
+        rc = jwt2signinput (jwt, &digest);
+        if (rc)
             goto FREE_PUB;
 
-        if (rc = jwt2sig (jwt, &sig))
+        rc = jwt2sig (jwt, &sig);
+        if (rc)
             goto FREE_DIGEST;
 
         rc = gcry_pk_verify (sig, digest, pubkey);

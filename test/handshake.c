@@ -183,7 +183,7 @@ OUT:
     return rc;
 }
 
-char *
+static char *
 build_key_post (json_t *jwk)
 {
 
@@ -202,7 +202,7 @@ build_key_post (json_t *jwk)
 
 }
 
-char *
+static char *
 combine (const char *uri, const char* jwt)
 {
     size_t l1, l2, tot;
@@ -225,7 +225,7 @@ combine (const char *uri, const char* jwt)
 
 }
 
-struct MemoryStruct
+static struct MemoryStruct
 get (char *uri)
 {
 
@@ -375,7 +375,7 @@ build_hello_rsp (char *sub, json_t *hellorsp)
     return jwt;
 }
 
-json_t *
+static json_t *
 verify_hello (const char *jwt, json_t *pub)
 {
     json_t *header, *claims;
@@ -388,7 +388,7 @@ verify_hello (const char *jwt, json_t *pub)
 
 }
 
-json_t *
+static json_t *
 verify_done (const char *jwt, json_t *pub)
 {
     json_t *header, *claims;

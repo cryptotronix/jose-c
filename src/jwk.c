@@ -8,8 +8,9 @@
 #include "base64url.h"
 #include <libcryptoauth.h>
 
-json_t*
-build_ec_jwk (char *x, char *y, char *d, char *use, char *kid)
+static json_t*
+build_ec_jwk (const char *x, const char *y, const char *d, const char *use,
+              const char *kid)
 {
     assert (NULL != x);
     assert (NULL != y);
@@ -66,7 +67,7 @@ OUT:
     return jwk;
 }
 
-json_t *
+static json_t *
 raw_pubkey2jwk (uint8_t *q, size_t q_len)
 {
     uint8_t *x, *y;
@@ -119,7 +120,8 @@ gcry_pubkey2jwk (gcry_sexp_t * pubkey)
     if (NULL == (mpi_q = gcry_sexp_nth_mpi (sexp_q, 1, GCRYMPI_FMT_USG)))
         goto FREE_Q;
 
-    if (rc = gcry_mpi_aprint(GCRYMPI_FMT_USG, &raw_q, &size_q, mpi_q))
+    rc = gcry_mpi_aprint(GCRYMPI_FMT_USG, &raw_q, &size_q, mpi_q);
+    if (rc)
         goto FREE_MPI_Q;
 
     jwk = raw_pubkey2jwk (raw_q, size_q);

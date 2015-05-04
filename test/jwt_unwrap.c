@@ -220,7 +220,6 @@ main (int argc, char **argv)
 {
   struct arguments arguments;
   int rc = -1;
-  char *jwt;
 
   /* Default values. */
   arguments.silent = 0;

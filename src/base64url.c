@@ -10,7 +10,7 @@
 size_t
 base64url_encode_alloc (const uint8_t *data, size_t len, char **out)
 {
-    int i;
+    size_t i;
 
     assert(NULL != data);
     assert(NULL != out);
@@ -36,14 +36,13 @@ base64url_encode_alloc (const uint8_t *data, size_t len, char **out)
 size_t
 base64url_decode_alloc (const uint8_t *data, size_t l, char **out)
 {
-    int i;
-    size_t s, pad;
+    size_t i, s, pad;
     char *burl;
     size_t len;
 
     assert(NULL != data);
 
-    len = strnlen (data, l);
+    len = strnlen ((const char *)data, l);
 
     pad = len + (4 - len % 4) % 4;
 
@@ -53,7 +52,7 @@ base64url_decode_alloc (const uint8_t *data, size_t l, char **out)
     assert (NULL != burl);
     memset (burl, 0, pad + 1);
 
-    strncpy (burl, data, len);
+    strncpy (burl, (const char *)data, len);
 
     for (i = 0; i < len; i++)
     {

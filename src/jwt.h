@@ -7,11 +7,6 @@
 #include "jwa.h"
 #include "../libjosec.h"
 
-void
-test_json();
-
-
-
 char *
 jwt_encode_old(json_t *claims, jwa_t alg, sign_funcp sfunc);
 
