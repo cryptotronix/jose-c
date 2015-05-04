@@ -27,7 +27,7 @@ jwa2enum (const char *str)
 }
 
 char *
-jwt_encode(jose_context_t *ctx, json_t *claims, jwa_t alg)
+jwt_encode(jose_context_t *ctx, const json_t *claims, jwa_t alg)
 {
     size_t hlen, clen, slen;
     char *jwt = NULL;
@@ -58,7 +58,6 @@ jwt_encode(jose_context_t *ctx, json_t *claims, jwa_t alg)
 
     json_t *head_j = json_object();
     json_object_set_new(head_j, "alg", json_string(alg_type));
-
 
     char *signing_input = make_signing_input (head_j, claims);
 
