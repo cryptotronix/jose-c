@@ -57,7 +57,14 @@ libjosec_la_SOURCES =	src/jwt.c \
 			src/jws.c \
 			src/context.c \
 			src/hs256.c \
-			src/soft_crypto.c
+			src/soft_crypto.c \
+			src/base64url.h \
+                        src/hs256.h \
+                        src/jwa.h \
+                        src/jwk.h \
+                        src/jws.h \
+                        src/jwt.h \
+                        src/soft_crypto.h
 
 
 
