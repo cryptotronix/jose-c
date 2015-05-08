@@ -1,19 +1,17 @@
-# Copyright (C) 2014-2015 Cryptotronix, LLC.
+# This file is part of libjose-c.
 
-# This file is part of libjosec.
-
-# libjosec is free software: you can redistribute it and/or modify
+# libjose-c is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # any later version.
 
-# libjosec is distributed in the hope that it will be useful,
+# libjose-c is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU Lesser General Public License for more details.
 
 # You should have received a copy of the GNU Lesser General Public License
-# along with libjosec.  If not, see <http://www.gnu.org/licenses/>.
+# along with libjose-c.  If not, see <http://www.gnu.org/licenses/>.
 
 SUBDIRS = lib . test
 ## Place generated object files (.o) into the same directory as their source

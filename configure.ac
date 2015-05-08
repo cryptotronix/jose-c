@@ -1,19 +1,19 @@
-# Copyright (C) 2014-2015 Cryptotronix, LLC.
+# Copyright (C) 2015 Cryptotronix, LLC.
 
-# This file is part of libcryptoauth.
+# This file is part of libjose-c.
 
-# libcryptoauth is free software: you can redistribute it and/or modify
+# libjose-c is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # any later version.
 
-# libcryptoauth is distributed in the hope that it will be useful,
+# libjose-c is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU Lesser General Public License for more details.
 
 # You should have received a copy of the GNU Lesser General Public License
-# along with libcryptoauth.  If not, see <http://www.gnu.org/licenses/>.
+# along with libjose-c.  If not, see <http://www.gnu.org/licenses/>.
 
 AC_INIT([libjose-c], [0.3.4], [bugs@cryptotronix.com], [josec],
                      [https://github.com/cryptotronix/jose-c])

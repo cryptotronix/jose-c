@@ -90,3 +90,7 @@
 /josec.tgz
 /josec-0.3.pc
 /josec.pc
+/GNUmakefile
+/maint.mk
+/useless-if-before-free
+/vc-list-files
