@@ -46,7 +46,7 @@ AC_CONFIG_HEADERS([config.h])
 AC_PROG_CC
 AC_PROG_CC_C_O
 AM_PROG_CC_C_O
-LT_INIT([disable-static])
+LT_INIT([static])
 gl_EARLY
 gl_INIT
 
