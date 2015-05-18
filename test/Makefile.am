@@ -22,7 +22,7 @@ CFLAGS_TO_ADD = $(CRYPTOAUTH_CFLAGS) $(JANSSON_CFLAGS) -I$(top_srcdir)/lib \
 LIBS_TO_ADD = ../libjosec.la @CHECK_LIBS@ $(JANSSON_LIBS) \
               $(top_srcdir)/lib/libgnu.la $(CRYPTOAUTH_LIBS) $(LIBGCRYPT_LIBS)
 
-check_PROGRAMS = check_libjosec jwtwrap jwtunwrap handshake
+check_PROGRAMS = check_libjosec jwtwrap jwtunwrap
 check_libjosec_SOURCES = test_jwt.c $(top_builddir)/libjosec.h
 check_libjosec_CFLAGS = @CHECK_CFLAGS@ $(CFLAGS_TO_ADD)
 check_libjosec_LDADD = $(LIBS_TO_ADD)
