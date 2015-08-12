@@ -34,7 +34,3 @@ jwtwrap_LDADD = $(LIBS_TO_ADD)
 jwtunwrap_SOURCES = jwt_unwrap.c $(top_builddir)/libjosec.h
 jwtunwrap_CFLAGS = $(CFLAGS_TO_ADD)
 jwtunwrap_LDADD = $(LIBS_TO_ADD)
-
-handshake_SOURCES = handshake.c $(top_builddir)/libjosec.h
-handshake_CFLAGS = $(CFLAGS_TO_ADD)
-handshake_LDADD = $(LIBS_TO_ADD) -lcurl
