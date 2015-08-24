@@ -37,6 +37,21 @@ hs256_soft_hmac (const char *signing_input, int si_len,
 
 }
 
+static int
+memcmp_constant_time (const void *a, const void *b, size_t size)
+{
+    const uint8_t *ap = a;
+    const uint8_t *bp = b;
+    int rc = 0;
+    size_t i;
+
+    if (NULL == a || NULL == b) return -1;
+
+    for (i = 0; i < size; i++)
+        rc |= *ap++ ^ *bp++;
+
+    return rc;
+}
 int
 hs256_soft_verify (const char *jwt, const uint8_t *key, int k_len)
 {
@@ -48,7 +63,7 @@ hs256_soft_verify (const char *jwt, const uint8_t *key, int k_len)
 
     char *calc = hs256_encode (si, strlen(si), key, k_len, NULL);
 
-    int rc = memcmp (jwt, calc, strlen(calc));
+    int rc = memcmp_constant_time (jwt, calc, strlen(calc));
 
     free (si);
     free (calc);
