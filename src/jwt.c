@@ -87,6 +87,8 @@ jwt_encode(jose_context_t *ctx, const json_t *claims, jwa_t alg)
             result = jws_append_signing_input (signing_input, si_len,
                                                sig, sig_len);
 
+            free (sig);
+
         }
 
     }
