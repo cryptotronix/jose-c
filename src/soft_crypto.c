@@ -3,6 +3,7 @@
 #include <assert.h>
 #include "hs256.h"
 #include <syslog.h>
+#include <yacl.h>
 
 int
 jose_soft_sign(const uint8_t *signing_input, size_t si_len,
@@ -81,4 +82,22 @@ jose_soft_verify(const char *jwt, jwa_t alg, jose_context_t *ctx)
 
     return rc;
 
+}
+
+
+void
+jose_hmac_256 (const uint8_t *key, size_t key_len,
+               const uint8_t *data, size_t data_len,
+               uint8_t *mac)
+{
+    int rc;
+    rc = yacl_hmac_sha256(key, key_len, data, data_len, mac);
+
+    assert (rc == 0);
+}
+
+void
+jose_sha256 (const uint8_t *in, size_t len, uint8_t *out)
+{
+    assert (0 == yacl_sha256 (in, len, out));
 }

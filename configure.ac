@@ -24,17 +24,14 @@ AC_CONFIG_MACRO_DIR([m4])
 PKG_PROG_PKG_CONFIG
 AM_PROG_AR
 
-#Check for libxml
-PKG_CHECK_MODULES([XML], [libxml-2.0 >= 2.8])
-
 #Check for check
 PKG_CHECK_MODULES([CHECK], [check >= 0.9.8])
 
 #Check for libjannson
 PKG_CHECK_MODULES([JANSSON], [jansson])
 
-#Check for libcryptoauth
-PKG_CHECK_MODULES([CRYPTOAUTH], [cryptoauth >= 0.3])
+#Check for libyacl
+PKG_CHECK_MODULES([YACL], [yacl])
 
 #Check for libgcrypt
 AM_PATH_LIBGCRYPT([], [], AC_MSG_ERROR([libgcrypt is not installed]))

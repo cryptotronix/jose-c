@@ -17,12 +17,13 @@
 TESTS = check_libjosec
 TESTS_ENVIRONMENT = $(VALGRIND)
 
-CFLAGS_TO_ADD = $(CRYPTOAUTH_CFLAGS) $(JANSSON_CFLAGS) -I$(top_srcdir)/lib \
+CFLAGS_TO_ADD = $(YACL_CFLAGS) $(JANSSON_CFLAGS) -I$(top_srcdir)/lib \
                 -I$(top_builddir)/lib -I$(top_srcdir)/src $(LIBGCRYPT_CFLAGS)
 LIBS_TO_ADD = ../libjosec.la @CHECK_LIBS@ $(JANSSON_LIBS) \
-              $(top_srcdir)/lib/libgnu.la $(CRYPTOAUTH_LIBS) $(LIBGCRYPT_LIBS)
+              $(top_srcdir)/lib/libgnu.la $(YACL_LIBS) $(LIBGCRYPT_LIBS)
 
-check_PROGRAMS = check_libjosec jwtwrap jwtunwrap leak
+check_PROGRAMS = check_libjosec leak
+
 check_libjosec_SOURCES = test_jwt.c $(top_builddir)/libjosec.h
 check_libjosec_CFLAGS = @CHECK_CFLAGS@ $(CFLAGS_TO_ADD)
 check_libjosec_LDADD = $(LIBS_TO_ADD)

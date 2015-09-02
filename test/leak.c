@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <argp.h>
 #include <assert.h>
-#include <libcryptoauth.h>
 #include "../libjosec.h"
 #include "../src/soft_crypto.h"
 #include "jwt.h"

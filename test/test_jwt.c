@@ -5,9 +5,10 @@
 #include <jansson.h>
 #include <assert.h>
 #include <gcrypt.h>
-#include <libcryptoauth.h>
+#include <yacl.h>
 #include "../src/hs256.h"
 #include "soft_crypto.h"
+#include "../src/jwk.h"
 
 
 const char * encoded_jwk = "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"f83OJ3D2xF1Bg8vub9tLe1gHMzV76e8Tus9uPHvRVEU\",\"y\":\"x_FEzRu9m36HLN_tue659LNpXW6pCyStikYjKIWI5a0\",\"d\":\"jpsQnnGQmL-YBIffH1136cspYG6-0iY7X1fCE9-E9LI\"}";
@@ -189,7 +190,7 @@ START_TEST(test_base64)
 
     ck_assert (in_len > 0);
 
-    printf("Encoded Base64 URL Result (%d): %s\n", in_len, in);
+    printf("Encoded Base64 URL Result (%zu): %s\n", in_len, in);
 
     out_len = base64url_decode_alloc (in, in_len, &out);
 
@@ -289,7 +290,7 @@ START_TEST(test_jwt_verify)
     size_t claims_len;
     claims_len = base64url_decode_alloc (dot + 1, dot2 - dot, &claims);
 
-    printf("Claims %d: %s\n", claims_len , claims);
+    printf("Claims %zu: %s\n", claims_len , claims);
 
     ck_assert(claims_len > 0);
 
@@ -316,9 +317,9 @@ START_TEST(t_jwk2pubkey)
 
     ck_assert (NULL != jwk);
 
-    gcry_sexp_t pubkey;
+    uint8_t pubkey[YACL_P256_COORD_SIZE*2];
 
-    ck_assert (0 == jwk2pubkey (jwk, &pubkey));
+    ck_assert (0 == jwk2pubkey (jwk, pubkey));
 
 }
 END_TEST
@@ -327,18 +328,19 @@ START_TEST(t_jwk2sig)
 {
     const char *b64sig = "DtEhU3ljbEg8L38VWAfUAqOyKAM6-Xx-F4GawxaepmXFCgfTjDxw5djxLa8ISlSApmWQxfKTUJqPP3-Kg6NU1Q";
 
-    gcry_sexp_t sig;
+    uint8_t sig[YACL_P256_COORD_SIZE*2];
 
-    ck_assert (0 == jws2sig (b64sig, &sig));
+    ck_assert (0 == jws2sig (b64sig, sig));
 
 }
 END_TEST
 
 START_TEST(t_jwt2signinput)
 {
-    gcry_sexp_t digest;
 
-    ck_assert (0 == jwt2signinput (encoded_jwt, &digest));
+    uint8_t digest[YACL_P256_COORD_SIZE];
+
+    ck_assert (0 == jwt2signinput (encoded_jwt, digest));
 
 
 }
@@ -412,9 +414,26 @@ START_TEST(t_g2jwk)
     gcry_sexp_t pubkey;
     json_t *jwk;
 
-    ck_assert (0 == lca_load_signing_key ("test_keys/test.key", &pubkey));
+    uint8_t x[] = {0xD4, 0xF6, 0xA6, 0x73, 0x8D, 0x9B, 0x8D, 0x3A,
+                   0x70, 0x75, 0xC1, 0xE4, 0xEE, 0x95, 0x01, 0x5F,
+                   0xC0, 0xC9, 0xB7, 0xE4, 0x27, 0x2D, 0x2B, 0xEB,
+                   0x66, 0x44, 0xD3, 0x60, 0x9F, 0xC7, 0x81, 0xB7};
 
-    ck_assert (0 != (jwk = gcry_pubkey2jwk (&pubkey)));
+    uint8_t y[] = {0x1F, 0x9A, 0x80, 0x72, 0xF5, 0x8C, 0xB6, 0x6A,
+                   0xE2, 0xF8, 0x9B, 0xB1, 0x24, 0x51, 0x87, 0x3A,
+                   0xBF, 0x7D, 0x91, 0xF9, 0xE1, 0xFB, 0xF9, 0x6B,
+                   0xF2, 0xF7, 0x0E, 0x73, 0xAA, 0xC9, 0xA2, 0x83};
+
+    uint8_t d[] = {0x5A, 0x1E, 0xF0, 0x03, 0x51, 0x18, 0xF1, 0x9F,
+                   0x31, 0x10, 0xFB, 0x81, 0x81, 0x3D, 0x35, 0x47,
+                   0xBC, 0xE1, 0xE5, 0xBC, 0xE7, 0x7D, 0x1F, 0x74,
+                   0x47, 0x15, 0xE1, 0xD5, 0xBB, 0xE7, 0x03, 0x78 };
+
+    jwk = jc_eckey2jwk (x, sizeof(x), y, sizeof(y),
+                        d, sizeof(d), "P-256",
+                        "sig", "1");
+
+    assert (NULL != jwk);
 
     fprintf (stdout, "%s: ", "JWK");
     ck_assert (0 == json_dumpf(jwk, stdout, 0));
@@ -425,6 +444,13 @@ START_TEST(t_g2jwk)
     ck_assert_str_eq("sig", json_string_value (json_object_get (jwk, "use")));
     ck_assert(NULL != json_string_value (json_object_get (jwk, "x")));
     ck_assert(NULL != json_string_value (json_object_get (jwk, "y")));
+    ck_assert(NULL != json_string_value (json_object_get (jwk, "d")));
+
+    jwk = jc_eckey2jwk (x, sizeof(x), y, sizeof(y),
+                        NULL, sizeof(d), "P-256",
+                        "sig", "1");
+
+    ck_assert(NULL == json_string_value (json_object_get (jwk, "d")));
 
 }
 END_TEST
@@ -587,6 +613,37 @@ START_TEST(t_msg)
 }
 END_TEST
 
+START_TEST(t_compare_hash)
+{
+    gcry_md_hd_t hd;
+    uint8_t *digest;
+    char *result;
+    int d_len = gcry_md_get_algo_dlen (GCRY_MD_SHA256);
+
+    uint8_t data[128];
+    uint8_t key[32];
+    memset (key, 0x60, sizeof(key));
+
+    fill_random (data, sizeof(data));
+
+    ck_assert (GPG_ERR_NO_ERROR == gcry_md_open (&hd, GCRY_MD_SHA256,
+                                                 GCRY_MD_FLAG_HMAC));
+
+    ck_assert (GPG_ERR_NO_ERROR == gcry_md_setkey (hd, key, sizeof(key)));
+
+    gcry_md_write (hd, data, sizeof(data));
+
+    digest = gcry_md_read (hd, GCRY_MD_SHA256);
+    ck_assert (digest);
+
+    uint8_t compare[32];
+
+    jose_hmac_256(key, sizeof(key), data, sizeof(data), compare);
+
+    ck_assert (0 == memcmp (compare, digest, sizeof(compare)));
+}
+END_TEST
+
 Suite * jwt_suite(void)
 {
     Suite *s;
@@ -614,8 +671,10 @@ Suite * jwt_suite(void)
     tcase_add_test(tc_core, t_external_encode);
     tcase_add_test(tc_core, t_alg_none);
     tcase_add_test(tc_core, t_msg);
+    tcase_add_test(tc_core, t_compare_hash);
     //tcase_add_test(tc_core, test_jwt_verify);
     suite_add_tcase(s, tc_core);
+
 
     return s;
 }
@@ -628,8 +687,6 @@ int main(void)
 
     s = jwt_suite();
     sr = srunner_create(s);
-
-    lca_init();
 
     srunner_run_all(sr, CK_NORMAL);
     number_failed = srunner_ntests_failed(sr);

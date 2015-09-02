@@ -1,37 +1,23 @@
 #include "config.h"
 #include "hs256.h"
-#include <gcrypt.h>
 #include <assert.h>
+#include <string.h>
 #include "jws.h"
+#include "soft_crypto.h"
 
 uint8_t *
 hs256_soft_hmac (const char *signing_input, int si_len,
                  const uint8_t *key, int k_len)
 {
-    gcry_md_hd_t hd;
-    uint8_t *digest, *tmp;
-    int d_len = gcry_md_get_algo_dlen (GCRY_MD_SHA256);
+    uint8_t *digest;
     assert (signing_input);
     assert (key);
 
-    digest = malloc (d_len);
-    memset (digest, 0, d_len);
+    digest = malloc (JOSE_SHA256_LEN);
     assert (digest);
+    memset (digest, 0, JOSE_SHA256_LEN);
 
-    assert (GPG_ERR_NO_ERROR == gcry_md_open (&hd, GCRY_MD_SHA256,
-                                              GCRY_MD_FLAG_HMAC));
-
-    assert (GPG_ERR_NO_ERROR == gcry_md_setkey (hd, key, k_len));
-
-    gcry_md_write (hd, signing_input, si_len);
-
-    tmp = gcry_md_read (hd, GCRY_MD_SHA256);
-    assert (tmp);
-
-    memcpy (digest, tmp, d_len);
-
-
-    gcry_md_close (hd);
+    jose_hmac_256 (key, k_len, signing_input, si_len, digest);
 
     return digest;
 
@@ -77,10 +63,8 @@ hs256_encode(const char *signing_input, int si_len,
              const uint8_t *key, int k_len,
              sign_funcp sfunc)
 {
-    gcry_md_hd_t hd;
     uint8_t *digest;
     char *result;
-    int d_len = gcry_md_get_algo_dlen (GCRY_MD_SHA256);
     assert (signing_input);
 
     if (NULL == sfunc && NULL != key)
@@ -88,14 +72,12 @@ hs256_encode(const char *signing_input, int si_len,
 
         assert (signing_input);
 
-        assert (GPG_ERR_NO_ERROR == gcry_md_open (&hd, GCRY_MD_SHA256,
-                                                  GCRY_MD_FLAG_HMAC));
+        digest = malloc (JOSE_SHA256_LEN);
+        assert (digest);
+        memset (digest, 0, JOSE_SHA256_LEN);
 
-        assert (GPG_ERR_NO_ERROR == gcry_md_setkey (hd, key, k_len));
+        jose_hmac_256 (key, k_len, signing_input, si_len, digest);
 
-        gcry_md_write (hd, signing_input, si_len);
-
-        digest = gcry_md_read (hd, GCRY_MD_SHA256);
         assert (digest);
     }
     else if (NULL != sfunc)
@@ -111,9 +93,7 @@ hs256_encode(const char *signing_input, int si_len,
 
     result =
         jws_append_signing_input (signing_input, si_len,
-                                  digest, d_len);
-
-    gcry_md_close (hd);
+                                  digest, JOSE_SHA256_LEN);
 
     return result;
 
