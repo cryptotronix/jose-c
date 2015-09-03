@@ -1,19 +1,19 @@
 # Copyright (C) 2014-2015 Cryptotronix, LLC.
 
-# This file is part of libcryptoauth.
+# This file is part of jose-c.
 
-# libcryptoauth is free software: you can redistribute it and/or modify
+# jose-c is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # any later version.
 
-# libcryptoauth is distributed in the hope that it will be useful,
+# jose-c is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU Lesser General Public License for more details.
 
 # You should have received a copy of the GNU Lesser General Public License
-# along with libcryptoauth.  If not, see <http://www.gnu.org/licenses/>.
+# along with jose-c.  If not, see <http://www.gnu.org/licenses/>.
 TESTS = check_libjosec
 TESTS_ENVIRONMENT = $(VALGRIND)
 
@@ -28,17 +28,17 @@ check_libjosec_SOURCES = test_jwt.c $(top_builddir)/libjosec.h
 check_libjosec_CFLAGS = @CHECK_CFLAGS@ $(CFLAGS_TO_ADD)
 check_libjosec_LDADD = $(LIBS_TO_ADD)
 
-jwtwrap_SOURCES = jwt_wrap.c $(top_builddir)/libjosec.h
-jwtwrap_CFLAGS = $(CFLAGS_TO_ADD)
-jwtwrap_LDADD = $(LIBS_TO_ADD)
+# jwtwrap_SOURCES = jwt_wrap.c $(top_builddir)/libjosec.h
+# jwtwrap_CFLAGS = $(CFLAGS_TO_ADD)
+# jwtwrap_LDADD = $(LIBS_TO_ADD)
 
-jwtunwrap_SOURCES = jwt_unwrap.c $(top_builddir)/libjosec.h
-jwtunwrap_CFLAGS = $(CFLAGS_TO_ADD)
-jwtunwrap_LDADD = $(LIBS_TO_ADD)
+# jwtunwrap_SOURCES = jwt_unwrap.c $(top_builddir)/libjosec.h
+# jwtunwrap_CFLAGS = $(CFLAGS_TO_ADD)
+# jwtunwrap_LDADD = $(LIBS_TO_ADD)
 
-handshake_SOURCES = handshake.c $(top_builddir)/libjosec.h
-handshake_CFLAGS = $(CFLAGS_TO_ADD)
-handshake_LDADD = $(LIBS_TO_ADD) -lcurl
+# handshake_SOURCES = handshake.c $(top_builddir)/libjosec.h
+# handshake_CFLAGS = $(CFLAGS_TO_ADD)
+# handshake_LDADD = $(LIBS_TO_ADD) -lcurl
 
 leak_SOURCES = leak.c $(top_builddir)/libjosec.h
 leak_CFLAGS = $(CFLAGS_TO_ADD)

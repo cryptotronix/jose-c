@@ -613,37 +613,6 @@ START_TEST(t_msg)
 }
 END_TEST
 
-START_TEST(t_compare_hash)
-{
-    gcry_md_hd_t hd;
-    uint8_t *digest;
-    char *result;
-    int d_len = gcry_md_get_algo_dlen (GCRY_MD_SHA256);
-
-    uint8_t data[128];
-    uint8_t key[32];
-    memset (key, 0x60, sizeof(key));
-
-    fill_random (data, sizeof(data));
-
-    ck_assert (GPG_ERR_NO_ERROR == gcry_md_open (&hd, GCRY_MD_SHA256,
-                                                 GCRY_MD_FLAG_HMAC));
-
-    ck_assert (GPG_ERR_NO_ERROR == gcry_md_setkey (hd, key, sizeof(key)));
-
-    gcry_md_write (hd, data, sizeof(data));
-
-    digest = gcry_md_read (hd, GCRY_MD_SHA256);
-    ck_assert (digest);
-
-    uint8_t compare[32];
-
-    jose_hmac_256(key, sizeof(key), data, sizeof(data), compare);
-
-    ck_assert (0 == memcmp (compare, digest, sizeof(compare)));
-}
-END_TEST
-
 Suite * jwt_suite(void)
 {
     Suite *s;
@@ -671,7 +640,6 @@ Suite * jwt_suite(void)
     tcase_add_test(tc_core, t_external_encode);
     tcase_add_test(tc_core, t_alg_none);
     tcase_add_test(tc_core, t_msg);
-    tcase_add_test(tc_core, t_compare_hash);
     //tcase_add_test(tc_core, test_jwt_verify);
     suite_add_tcase(s, tc_core);
 
