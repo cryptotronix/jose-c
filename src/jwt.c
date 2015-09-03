@@ -363,7 +363,8 @@ jwk2pubkey (const json_t *jwk, uint8_t pubkey[YACL_P256_COORD_SIZE*2])
                                     strlen (json_string_value (j_y)),
                                     (char **)&y);
 
-    if (x_len <= 0 || y_len <= 0 || x_len > 256 || y_len > 256)
+    if (x_len <= 0 || y_len <= 0 || x_len > YACL_P256_COORD_SIZE
+        || y_len > YACL_P256_COORD_SIZE)
         goto OUT;
 
     memcpy (pubkey, x, x_len);
