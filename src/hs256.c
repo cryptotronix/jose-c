@@ -78,7 +78,6 @@ hs256_encode(const char *signing_input, int si_len,
 
         jose_hmac_256 (key, k_len, signing_input, si_len, digest);
 
-        assert (digest);
     }
     else if (NULL != sfunc)
     {
@@ -94,6 +93,8 @@ hs256_encode(const char *signing_input, int si_len,
     result =
         jws_append_signing_input (signing_input, si_len,
                                   digest, JOSE_SHA256_LEN);
+
+    free (digest);
 
     return result;
 

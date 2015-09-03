@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with libcryptoauth.  If not, see <http://www.gnu.org/licenses/>.
 
-AC_INIT([libjose-c], [0.4.0], [bugs@cryptotronix.com], [josec],
+AC_INIT([libjose-c], [0.4.1], [bugs@cryptotronix.com], [josec],
                      [https://github.com/cryptotronix/jose-c])
 AC_PREREQ([2.59])
 AC_USE_SYSTEM_EXTENSIONS
@@ -49,7 +49,7 @@ gl_INIT
 # For information on how to properly maintain the library version information,
 # refer to the libtool manual, section "Updating library version information":
 # http://www.gnu.org/software/libtool/manual/html_node/Updating-version-info.html
-AC_SUBST([JOSEC_SO_VERSION], [1:0:0])
+AC_SUBST([JOSEC_SO_VERSION], [1:1:0])
 AC_SUBST([JOSEC_API_VERSION], [0.4])
 
 # Override the template file name of the generated .pc file, so that there
