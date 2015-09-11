@@ -23,7 +23,7 @@ LIBS_TO_ADD = ../libjosec.la @CHECK_LIBS@ $(JANSSON_LIBS) \
               $(top_srcdir)/lib/libgnu.la $(YACL_LIBS) $(LIBGCRYPT_LIBS)
 
 
-check_PROGRAMS = check_libjosec jwtwrap jwkutil
+check_PROGRAMS = check_libjosec leak
 check_libjosec_SOURCES = test_jwt.c $(top_builddir)/libjosec.h
 check_libjosec_CFLAGS = @CHECK_CFLAGS@ $(CFLAGS_TO_ADD)
 check_libjosec_LDADD = $(LIBS_TO_ADD)
@@ -40,9 +40,9 @@ check_libjosec_LDADD = $(LIBS_TO_ADD)
 # handshake_CFLAGS = $(CFLAGS_TO_ADD)
 # handshake_LDADD = $(LIBS_TO_ADD) -lcurl
 
-jwkutil_SOURCES = jwk_util.c $(top_builddir)/libjosec.h
-jwkutil_CFLAGS = $(CFLAGS_TO_ADD)
-jwkutil_LDADD = $(LIBS_TO_ADD) -lgpg-error
+# jwkutil_SOURCES = jwk_util.c $(top_builddir)/libjosec.h
+# jwkutil_CFLAGS = $(CFLAGS_TO_ADD)
+# jwkutil_LDADD = $(LIBS_TO_ADD) -lgpg-error
 
 leak_SOURCES = leak.c $(top_builddir)/libjosec.h
 leak_CFLAGS = $(CFLAGS_TO_ADD)
