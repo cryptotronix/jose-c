@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <argp.h>
 #include <assert.h>
-#include <libcryptoauth.h>
 #include "../libjosec.h"
 
 const char *argp_program_version =

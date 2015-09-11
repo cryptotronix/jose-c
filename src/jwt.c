@@ -3,10 +3,8 @@
 #include <jansson.h>
 #include <assert.h>
 #include <string.h>
-#include <gcrypt.h>
 #include "jwt.h"
 #include "base64url.h"
-#include <libcryptoauth.h>
 #include "jws.h"
 #include "../libjosec.h"
 
@@ -86,6 +84,8 @@ jwt_encode(jose_context_t *ctx, const json_t *claims, jwa_t alg)
 
             result = jws_append_signing_input (signing_input, si_len,
                                                sig, sig_len);
+
+            free (sig);
 
         }
 
@@ -264,7 +264,7 @@ OUT:
 }
 
 int
-jwt2signinput (const char *jwt, gcry_sexp_t *out)
+jwt2signinput (const char *jwt, uint8_t out[YACL_P256_COORD_SIZE])
 {
     assert (NULL != jwt);
 
@@ -278,22 +278,9 @@ jwt2signinput (const char *jwt, gcry_sexp_t *out)
     if(NULL == dot)
         return rc;
 
-    const unsigned int DLEN = gcry_md_get_algo_dlen (GCRY_MD_SHA256);
-
-    digest = (uint8_t *)malloc (DLEN);
-    assert (NULL != digest);
-
     sign_input_len = dot - jwt;
 
-    gcry_md_hash_buffer (GCRY_MD_SHA256, digest, jwt, sign_input_len);
-
-
-    rc = gcry_sexp_build (out, NULL,
-                          "(data (flags raw)\n"
-                          " (value %b))",
-                          DLEN, digest);
-
-    free (digest);
+    rc = yacl_sha256 (jwt, sign_input_len, out);
 
     return rc;
 
@@ -301,7 +288,7 @@ jwt2signinput (const char *jwt, gcry_sexp_t *out)
 
 
 int
-jws2sig (const char* b64urlsig, gcry_sexp_t *sig)
+jws2sig (const char* b64urlsig, uint8_t sig[YACL_P256_COORD_SIZE*2])
 {
     assert (NULL != b64urlsig);
     assert (NULL != sig);
@@ -327,10 +314,8 @@ jws2sig (const char* b64urlsig, gcry_sexp_t *sig)
         goto OUT;
     }
 
-    rc = gcry_sexp_build (sig, NULL,
-                          "(sig-val(ecdsa(r %b)(s %b)))",
-                          32, raw_sig,
-                          32, raw_sig + 32);
+    memcpy (sig, raw_sig, s_len);
+    rc = 0;
 
 OUT:
     free (raw_sig);
@@ -339,7 +324,7 @@ OUT:
 }
 
 static int
-jwt2sig (const char* jwt, gcry_sexp_t *sig)
+jwt2sig (const char* jwt, uint8_t sig[YACL_P256_COORD_SIZE*2])
 {
     assert (NULL != jwt);
     assert (NULL != sig);
@@ -354,8 +339,9 @@ jwt2sig (const char* jwt, gcry_sexp_t *sig)
         return jws2sig (dot + 1, sig);
 
 }
+
 int
-jwk2pubkey (const json_t *jwk, gcry_sexp_t *pubkey)
+jwk2pubkey (const json_t *jwk, uint8_t pubkey[YACL_P256_COORD_SIZE*2])
 {
     assert (NULL != jwk);
     assert (NULL != pubkey);
@@ -377,26 +363,14 @@ jwk2pubkey (const json_t *jwk, gcry_sexp_t *pubkey)
                                     strlen (json_string_value (j_y)),
                                     (char **)&y);
 
-    if (x_len <= 0 || y_len <= 0 || x_len > 256 || y_len > 256)
+    if (x_len <= 0 || y_len <= 0 || x_len > YACL_P256_COORD_SIZE
+        || y_len > YACL_P256_COORD_SIZE)
         goto OUT;
 
-    q_len = x_len + y_len + 1;
-    q = (uint8_t *)malloc(q_len);
-    assert (NULL != q);
+    memcpy (pubkey, x, x_len);
+    memcpy (pubkey+x_len, y, y_len);
+    rc = 0;
 
-    q[0] = 0x04;
-
-    memcpy (q+1, x, x_len);
-    memcpy (q+1+x_len, y, y_len);
-
-    rc = gcry_sexp_build (pubkey, NULL,
-                          "(public-key\n"
-                          " (ecdsa\n"
-                          "  (curve \"NIST P-256\")\n"
-                          "  (q %b)"
-                          "))", q_len, q);
-
-    free (q);
 OUT:
     free (x);
     free (y);
@@ -424,7 +398,9 @@ jwt_verify (const json_t *pub_jwk, const char *jwt)
     assert (NULL != jwt);
 
     int rc = -1;
-    gcry_sexp_t pubkey, digest, sig;
+    uint8_t pubkey[YACL_P256_COORD_SIZE*2];
+    uint8_t digest[YACL_P256_COORD_SIZE];
+    uint8_t sig[YACL_P256_COORD_SIZE*2];
     json_t *head, *claims, *alg_type;
     const char *alg;
 
@@ -451,25 +427,36 @@ jwt_verify (const json_t *pub_jwk, const char *jwt)
             goto FREE_JSON;
         }
 
-        rc = jwk2pubkey (pub_jwk, &pubkey);
+        rc = jwk2pubkey (pub_jwk, pubkey);
         if (rc)
             goto FREE_JSON;
 
-        rc = jwt2signinput (jwt, &digest);
+        rc = jwt2signinput (jwt, digest);
         if (rc)
-            goto FREE_PUB;
+            goto FREE_JSON;
 
-        rc = jwt2sig (jwt, &sig);
+        rc = jwt2sig (jwt, sig);
         if (rc)
-            goto FREE_DIGEST;
+            goto FREE_JSON;
 
-        rc = gcry_pk_verify (sig, digest, pubkey);
+        printf ("pubkey: ");
+        int i;
+        for (i=0; i<sizeof(pubkey);i++)
+            printf("%02X", pubkey[i]);
+        printf ("\n");
 
-        gcry_free (sig);
-    FREE_DIGEST:
-        gcry_free (digest);
-    FREE_PUB:
-        gcry_free (pubkey);
+        printf ("digest: ");
+        for (i=0; i<sizeof(digest);i++)
+            printf("%02X", digest[i]);
+        printf ("\n");
+
+        printf ("sig: ");
+        for (i=0; i<sizeof(sig);i++)
+            printf("%02X", sig[i]);
+        printf ("\n");
+
+        rc = yacl_ecdsa_verify (pubkey, digest, sig);
+
     }
     else
     {

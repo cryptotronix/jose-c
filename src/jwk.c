@@ -3,10 +3,8 @@
 #include <jansson.h>
 #include <assert.h>
 #include <string.h>
-#include <gcrypt.h>
 #include "jwk.h"
 #include "base64url.h"
-#include <libcryptoauth.h>
 
 static json_t*
 build_ec_jwk (const char *x, const char *y, const char *d, const char *use,
@@ -103,36 +101,44 @@ OUT:
 }
 
 json_t *
-gcry_pubkey2jwk (gcry_sexp_t * pubkey)
+jc_eckey2jwk (const uint8_t *x, size_t xlen, const uint8_t *y, size_t ylen,
+              const uint8_t *d, size_t dlen, const char *curve,
+              const char *use, const char* kid)
 {
-
-    assert (NULL != pubkey);
-
-    gcry_error_t  rc = -1;
-    gcry_sexp_t sexp_q;
-    gcry_mpi_t mpi_q;
-    unsigned char *raw_q;
-    size_t size_q;
+    char *x_b64 = NULL;
+    char *y_b64 = NULL;
+    char *d_b64 = NULL;
+    size_t x_b64_len, y_b64_len, d_b64_len;
     json_t *jwk = NULL;
+    const int COORD_LEN = 32;
 
-    if (NULL == (sexp_q = gcry_sexp_find_token(*pubkey, "q", 0)))
-        goto OUT;
+    assert (x);
+    assert (y);
 
-    if (NULL == (mpi_q = gcry_sexp_nth_mpi (sexp_q, 1, GCRYMPI_FMT_USG)))
-        goto FREE_Q;
+    assert (curve);
+    /* P-256 only supported */
+    assert (strcmp ("P-256", curve) == 0);
 
-    rc = gcry_mpi_aprint(GCRYMPI_FMT_USG, &raw_q, &size_q, mpi_q);
-    if (rc)
-        goto FREE_MPI_Q;
+    if (0 == (x_b64_len = base64url_encode_alloc (x, COORD_LEN, &x_b64)))
+        goto FREE_X;
 
-    jwk = raw_pubkey2jwk (raw_q, size_q);
+    if (0 == (y_b64_len = base64url_encode_alloc (y, COORD_LEN, &y_b64)))
+        goto FREE_Y;
 
-    gcry_free (raw_q);
+    if (d)
+        if (0 == (d_b64_len = base64url_encode_alloc (d, COORD_LEN, &d_b64)))
+            goto FREE_D;
 
-FREE_MPI_Q:
-    gcry_mpi_release (mpi_q);
-FREE_Q:
-    gcry_sexp_release (sexp_q);
+    jwk = build_ec_jwk (x_b64, y_b64, d_b64, use, kid);
+
+FREE_D:
+    if (d)
+        free (d_b64);
+FREE_Y:
+    free (y_b64);
+FREE_X:
+    free (x_b64);
 OUT:
     return jwk;
+
 }

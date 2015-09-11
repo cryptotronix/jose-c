@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
-#include <gcrypt.h>
 #include "base64url.h"
 
 char *

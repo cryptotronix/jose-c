@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 #include <jansson.h>
-#include <gcrypt.h>
+#include <yacl.h>
 #include "jwa.h"
 #include "../libjosec.h"
 
@@ -17,13 +17,13 @@ size_t
 json2b64url (const json_t *j, char **out);
 
 int
-jwk2pubkey (const json_t *jwk, gcry_sexp_t *pubkey);
+jwk2pubkey (const json_t *jwk, uint8_t pubkey[YACL_P256_COORD_SIZE*2]);
 
 int
-jws2sig (const char* b64urlsig, gcry_sexp_t *sig);
+jws2sig (const char* b64urlsig, uint8_t sig[YACL_P256_COORD_SIZE*2]);
 
 int
-jwt2signinput (const char *jwt, gcry_sexp_t *out);
+jwt2signinput (const char *jwt, uint8_t out[YACL_P256_COORD_SIZE]);
 
 int
 jwt_verify (const json_t *pub_jwk, const char *jwt);
