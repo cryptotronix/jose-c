@@ -259,3 +259,62 @@ jwk_ecdsa_verify (const uint8_t *data, size_t data_len,
 
     return rc;
 }
+
+
+json_t *
+jwk_create_p256_key_pair (void)
+{
+    int rc;
+    uint8_t public_key[YACL_P256_COORD_SIZE*2];
+    uint8_t private_key[YACL_P256_COORD_SIZE];
+    size_t xb64len, yb64len, db64len;
+    char *x, *y, *d;
+    json_t *jwk;
+
+    rc = yacl_create_key_pair(public_key, private_key);
+
+    if (rc) return NULL;
+
+    xb64len = base64url_encode_alloc (public_key, YACL_P256_COORD_SIZE, &x);
+    assert (xb64len);
+
+    yb64len = base64url_encode_alloc (public_key + YACL_P256_COORD_SIZE,
+                                      YACL_P256_COORD_SIZE, &y);
+    assert  (yb64len);
+
+    db64len = base64url_encode_alloc (private_key, YACL_P256_COORD_SIZE, &d);
+    assert (db64len);
+
+    jwk = json_object();
+    assert (jwk);
+
+
+    assert (0 == json_object_set_new (jwk, "x", json_string (x)));
+    assert (0 == json_object_set_new (jwk, "y", json_string (y)));
+    assert (0 == json_object_set_new (jwk, "d", json_string (d)));
+
+    assert (0 == json_object_set_new (jwk, "kty", json_string ("EC")));
+    assert (0 == json_object_set_new (jwk, "crv", json_string ("P-256")));
+
+
+    free (x);
+    free (y);
+    memset (d, 0, db64len);
+    free (d);
+
+    return jwk;
+
+}
+
+
+json_t *
+jwk_create_es256_key_pair (void)
+{
+    json_t *jwk = jwk_create_p256_key_pair();
+
+    if (NULL == jwk) return NULL;
+
+    assert (0 == json_object_set_new (jwk, "alg", json_string ("ES256")));
+
+    return jwk;
+}

@@ -1,6 +1,10 @@
 jose-c NEWS -- history of user-visible changes
 Copyright (C) 2014-2015 Cryptotronix, LLC.
 
+Noteworthy changes in version 0.6.0 (Monday, 14 Sep 2015)
+----------------------------------------------------
+  * Adds p-256 key pair creation functions
+
 Noteworthy changes in version 0.5.0 (Monday, 14 Sep 2015)
 ----------------------------------------------------
   * Adds p-256 signing/verification with JWKs and B64URL sigs

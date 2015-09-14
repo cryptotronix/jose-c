@@ -101,6 +101,12 @@ jwk_ecdsa_verify (const uint8_t *data, size_t data_len,
                   const char *b64urlsig,
                   const json_t *public_jwk);
 
+json_t *
+jwk_create_p256_key_pair (void);
+
+json_t *
+jwk_create_es256_key_pair (void);
+
 /* ------------- Utilities ---------------------*/
 int
 b64url_decode_helper (const char *to_dec, uint8_t *decoded, size_t len);

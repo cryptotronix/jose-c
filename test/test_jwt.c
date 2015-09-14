@@ -685,6 +685,61 @@ START_TEST(t_ecdsa_sign_verify)
 }
 END_TEST
 
+START_TEST(t_create_key_pair)
+{
+    json_t *jwk = jwk_create_p256_key_pair ();
+
+    ck_assert (NULL != jwk);
+
+    json_t *crv = json_object_get (jwk, "crv");
+    json_t *x = json_object_get (jwk, "x");
+    json_t *y = json_object_get (jwk, "y");
+    json_t *d = json_object_get (jwk, "d");
+    json_t *kty = json_object_get (jwk, "kty");
+
+    ck_assert (0 == strcmp ("P-256", json_string_value (crv)));
+    ck_assert (NULL != x);
+    ck_assert (NULL != y);
+    ck_assert (NULL != d);
+    ck_assert (0 == strcmp ("EC", json_string_value (kty)));
+
+    jwk = jwk_create_es256_key_pair();
+
+    crv = json_object_get (jwk, "crv");
+    x = json_object_get (jwk, "x");
+    y = json_object_get (jwk, "y");
+    d = json_object_get (jwk, "d");
+    kty = json_object_get (jwk, "kty");
+    json_t *alg = json_object_get (jwk, "alg");
+
+    ck_assert (0 == strcmp ("P-256", json_string_value (crv)));
+    ck_assert (NULL != x);
+    ck_assert (NULL != y);
+    ck_assert (NULL != d);
+    ck_assert (0 == strcmp ("EC", json_string_value (kty)));
+    ck_assert (0 == strcmp ("ES256", json_string_value (alg)));
+
+    /* sign verify for kicks */
+
+    int rc;
+    uint8_t data [] = {0x01, 0x02, 0x03, 0x04};
+
+    json_error_t jerr;
+    char *b64urlsig;
+
+    rc = jwk_ecdsa_sign (data, sizeof(data), jwk, &b64urlsig);
+
+    ck_assert (rc == 0);
+
+    rc = jwk_ecdsa_verify (data, sizeof(data), b64urlsig, jwk);
+
+    ck_assert (rc == 0);
+
+
+
+}
+END_TEST
+
 Suite * jwt_suite(void)
 {
     Suite *s;
@@ -715,6 +770,7 @@ Suite * jwt_suite(void)
     tcase_add_test(tc_core, t_decode_helper);
     tcase_add_test(tc_core, t_jwk2rawpub);
     tcase_add_test(tc_core, t_ecdsa_sign_verify);
+    tcase_add_test(tc_core, t_create_key_pair);
     //tcase_add_test(tc_core, test_jwt_verify);
     suite_add_tcase(s, tc_core);
 
