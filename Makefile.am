@@ -107,4 +107,4 @@ pkgconfig_DATA = josec.pc
 ## Define an independent executable script for inclusion in the distribution
 ## archive.  However, it will not be installed on an end user's system due to
 ## the noinst_ prefix.
-dist_noinst_SCRIPTS = autogen.sh
+dist_noinst_SCRIPTS = autogen.sh install-sh
