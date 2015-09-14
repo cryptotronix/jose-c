@@ -613,6 +613,78 @@ START_TEST(t_msg)
 }
 END_TEST
 
+START_TEST(t_decode_helper)
+{
+    size_t encode_len;
+    uint8_t test[] = {0x01, 0x02, 0x03, 0x04};
+    uint8_t cmp[4];
+    char *out;
+
+    encode_len = base64url_encode_alloc (test, sizeof(test),
+                                         (char **)&out);
+
+    int rc = b64url_decode_helper (out, cmp, sizeof(cmp));
+
+    ck_assert (rc == 0);
+    ck_assert (0 == memcmp (cmp, test, sizeof(test)));
+
+    rc = b64url_decode_helper (out, cmp, sizeof(cmp) - 1);
+
+    ck_assert (rc == sizeof(cmp));
+
+
+    rc = b64url_decode_helper (test, cmp, sizeof(cmp));
+
+    ck_assert (rc == -1);
+
+    free (out);
+
+
+}
+END_TEST
+
+START_TEST(t_jwk2rawpub)
+{
+    int rc;
+    uint8_t pub[YACL_P256_COORD_SIZE*2];
+    json_error_t jerr;
+    json_t *jwk = json_loads(encoded_jwk, 0, &jerr);
+
+    ck_assert (NULL != jwk);
+    rc = jwk2rawpub (jwk, pub);
+
+    ck_assert (rc == 0);
+
+
+}
+END_TEST
+
+START_TEST(t_ecdsa_sign_verify)
+{
+    int rc;
+    uint8_t data [] = {0x01, 0x02, 0x03, 0x04};
+
+    json_error_t jerr;
+    json_t *jwk = json_loads(encoded_jwk, 0, &jerr);
+    char *b64urlsig;
+
+    ck_assert (NULL != jwk);
+
+    rc = jwk_ecdsa_sign (data, sizeof(data), jwk, &b64urlsig);
+
+    ck_assert (rc == 0);
+
+    rc = jwk_ecdsa_verify (data, sizeof(data), b64urlsig, jwk);
+
+    ck_assert (rc == 0);
+
+    rc = jwk_ecdsa_verify (data, sizeof(data) - 1, b64urlsig, jwk);
+
+    ck_assert (rc != 0);
+
+}
+END_TEST
+
 Suite * jwt_suite(void)
 {
     Suite *s;
@@ -640,6 +712,9 @@ Suite * jwt_suite(void)
     tcase_add_test(tc_core, t_external_encode);
     tcase_add_test(tc_core, t_alg_none);
     tcase_add_test(tc_core, t_msg);
+    tcase_add_test(tc_core, t_decode_helper);
+    tcase_add_test(tc_core, t_jwk2rawpub);
+    tcase_add_test(tc_core, t_ecdsa_sign_verify);
     //tcase_add_test(tc_core, test_jwt_verify);
     suite_add_tcase(s, tc_core);
 

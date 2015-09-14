@@ -4,6 +4,7 @@
 #include "hs256.h"
 #include <syslog.h>
 #include <yacl.h>
+#include <string.h>
 
 int
 jose_soft_sign(const uint8_t *signing_input, size_t si_len,

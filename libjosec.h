@@ -91,6 +91,18 @@ jwt_verify_sig(jose_context_t *ctx, const char *jwt, jwa_t alg);
 int
 jwt_decode (const char *jwt, json_t **header, json_t **claims);
 
+int
+jwk_ecdsa_sign (const uint8_t *data, size_t data_len,
+                const json_t *private_jwk,
+                const char **b64urlsig);
 
+int
+jwk_ecdsa_verify (const uint8_t *data, size_t data_len,
+                  const char *b64urlsig,
+                  const json_t *public_jwk);
+
+/* ------------- Utilities ---------------------*/
+int
+b64url_decode_helper (const char *to_dec, uint8_t *decoded, size_t len);
 
 #endif

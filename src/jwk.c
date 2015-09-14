@@ -5,6 +5,8 @@
 #include <string.h>
 #include "jwk.h"
 #include "base64url.h"
+#include <yacl.h>
+#include "../libjosec.h"
 
 static json_t*
 build_ec_jwk (const char *x, const char *y, const char *d, const char *use,
@@ -141,4 +143,119 @@ FREE_X:
 OUT:
     return jwk;
 
+}
+
+int
+b64url_decode_helper (const char *to_dec, uint8_t *decoded, size_t len)
+{
+    assert (to_dec);
+    size_t dec_len;
+    uint8_t *out;
+    int rc = -1;
+
+    dec_len = base64url_decode_alloc ((uint8_t *)to_dec, strlen (to_dec),
+                                      (char **) &out);
+
+    if (0 == dec_len)
+        return rc;
+
+    if (dec_len != len)
+    {
+        free (out);
+        return dec_len;
+    }
+
+    memcpy (decoded, out, len);
+
+    memset (out, 0, len);
+    free (out);
+
+    rc = 0;
+
+    return rc;
+}
+
+int
+jwk2rawpub (const json_t *jwk, uint8_t pub[YACL_P256_COORD_SIZE*2])
+{
+    assert (jwk);
+    int rc = -1;
+
+    json_t *x_j = json_object_get (jwk, "x");
+    json_t *y_j = json_object_get (jwk, "y");
+
+    if (NULL == x_j || NULL == y_j)
+        return rc;
+
+    const char *x_s = json_string_value (x_j);
+    const char *y_s = json_string_value (y_j);
+
+    if (NULL == x_s || NULL == y_s)
+        return -2;
+
+    rc = b64url_decode_helper(x_s, pub, YACL_P256_COORD_SIZE);
+    if (rc) return rc;
+
+    rc = b64url_decode_helper(y_s, pub + YACL_P256_COORD_SIZE,
+                              YACL_P256_COORD_SIZE);
+
+    return rc;
+
+}
+
+
+int
+jwk_ecdsa_sign (const uint8_t *data, size_t data_len,
+                const json_t *private_jwk,
+                const char **b64urlsig)
+{
+    assert (data); assert (private_jwk); assert (b64urlsig);
+
+    int rc = -1;
+    uint8_t raw_private_key[YACL_P256_COORD_SIZE];
+    uint8_t raw_sig[YACL_P256_COORD_SIZE*2];
+    json_t *d = json_object_get (private_jwk, "d");
+    assert (d);
+
+    rc = b64url_decode_helper (json_string_value (d), raw_private_key,
+                               YACL_P256_COORD_SIZE);
+
+    if (rc) return rc;
+
+    rc = yacl_hash_ecdsa_sign(data, data_len,
+                              raw_private_key,
+                              raw_sig);
+
+    if (rc) return rc;
+
+    size_t encode_len;
+    encode_len = base64url_encode_alloc (raw_sig, sizeof(raw_sig),
+                                         (char **)b64urlsig);
+
+    if (encode_len > 0)
+        return 0;
+    else
+        return -2;
+
+}
+
+int
+jwk_ecdsa_verify (const uint8_t *data, size_t data_len,
+                  const char *b64urlsig,
+                  const json_t *public_jwk)
+{
+    assert (data); assert (b64urlsig); assert (public_jwk);
+    int rc = -1;
+    uint8_t raw_pub[YACL_P256_COORD_SIZE*2];
+    uint8_t raw_sig[YACL_P256_COORD_SIZE*2];
+
+    rc = jwk2rawpub (public_jwk, raw_pub);
+    if (rc) return rc;
+
+    rc = b64url_decode_helper (b64urlsig, raw_sig, sizeof(raw_sig));
+    if (rc) return rc;
+
+    rc = yacl_hash_verify(data, data_len, raw_pub, raw_sig);
+
+    return rc;
 }
