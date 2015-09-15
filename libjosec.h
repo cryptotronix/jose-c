@@ -111,4 +111,8 @@ jwk_create_es256_key_pair (void);
 int
 b64url_decode_helper (const char *to_dec, uint8_t *decoded, size_t len);
 
+int
+b64url_encode_helper (const uint8_t *to_enc, size_t inlen,
+                      const char **out, size_t *outlen);
+
 #endif

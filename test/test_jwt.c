@@ -204,6 +204,37 @@ START_TEST(test_base64)
 }
 END_TEST
 
+START_TEST(t_encode_helper)
+{
+    int med = 100;
+    char *m;
+
+    m = malloc (med);
+
+    ck_assert (med == fill_random (m, med));
+
+    char *in;
+    size_t in_len;
+
+    int rc = b64url_encode_helper (m, med, &in, &in_len);
+
+    ck_assert (0 == rc);
+
+    printf("Encoded Base64 URL Result (%zu): %s\n", in_len, in);
+
+    uint8_t *out = malloc (med);
+
+    rc = b64url_decode_helper (in, out, med);
+
+    ck_assert (rc == 0);
+
+    ck_assert (0 == memcmp (out, m, med));
+
+    free (in);
+    free (out);
+}
+END_TEST
+
 
 START_TEST(test_b64url2json)
 {
@@ -771,6 +802,7 @@ Suite * jwt_suite(void)
     tcase_add_test(tc_core, t_jwk2rawpub);
     tcase_add_test(tc_core, t_ecdsa_sign_verify);
     tcase_add_test(tc_core, t_create_key_pair);
+    tcase_add_test(tc_core, t_encode_helper);
     //tcase_add_test(tc_core, test_jwt_verify);
     suite_add_tcase(s, tc_core);
 

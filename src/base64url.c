@@ -76,3 +76,26 @@ base64url_decode_alloc (const uint8_t *data, size_t l, char **out)
 
     return s;
 }
+
+
+int
+b64url_encode_helper (const uint8_t *to_enc, size_t inlen,
+                      const char **out, size_t *outlen)
+{
+    assert (to_enc);
+    assert (out);
+    assert (outlen);
+
+    int rc = -1;
+
+    size_t result = base64url_encode_alloc (to_enc, inlen, out);
+
+    if (result > 0)
+    {
+        rc = 0;
+        *outlen = result;
+    }
+
+    return rc;
+
+}
