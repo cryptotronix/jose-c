@@ -6,6 +6,7 @@
 #include <string.h>
 #include "base64url.h"
 
+
 char *
 jws_append_signing_input (const char* si, int si_len,
                           const uint8_t *sig, int sig_len)
