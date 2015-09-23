@@ -72,11 +72,14 @@ jwt_encode(jose_context_t *ctx, const json_t *claims, jwa_t alg)
         assert (NULL != ctx->sign_func);
         uint8_t *sig;
         size_t sig_len;
-        if (ctx->sign_func ((uint8_t *)signing_input, strlen(signing_input),
-                            alg, ctx,
-                            &sig, &sig_len))
+        int rc;
+        rc = ctx->sign_func ((uint8_t *)signing_input, strlen(signing_input),
+                             alg, ctx,
+                             &sig, &sig_len);
+        if (rc)
         {
             //failure
+            result = NULL;
         }
         else
         {
