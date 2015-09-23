@@ -216,7 +216,7 @@ START_TEST(t_encode_helper)
     char *in;
     size_t in_len;
 
-    int rc = b64url_encode_helper (m, med, &in, &in_len);
+    int rc = b64url_encode_helper (m, med, (const char **)&in, &in_len);
 
     ck_assert (0 == rc);
 
@@ -701,7 +701,7 @@ START_TEST(t_ecdsa_sign_verify)
 
     ck_assert (NULL != jwk);
 
-    rc = jwk_ecdsa_sign (data, sizeof(data), jwk, &b64urlsig);
+    rc = jwk_ecdsa_sign (data, sizeof(data), jwk, (const char **)&b64urlsig);
 
     ck_assert (rc == 0);
 
@@ -758,7 +758,7 @@ START_TEST(t_create_key_pair)
     json_error_t jerr;
     char *b64urlsig;
 
-    rc = jwk_ecdsa_sign (data, sizeof(data), jwk, &b64urlsig);
+    rc = jwk_ecdsa_sign (data, sizeof(data), jwk, (const char **)&b64urlsig);
 
     ck_assert (rc == 0);
 
@@ -767,6 +767,50 @@ START_TEST(t_create_key_pair)
     ck_assert (rc == 0);
 
 
+
+}
+END_TEST
+
+START_TEST(t_es256_encode)
+{
+    jose_context_t ctx;
+    char *jwt = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWV9";
+
+    json_t *header, *claims;
+    int rc;
+
+    rc = jwt_split (jwt, &header, &claims);
+
+    ck_assert (0 == jose_create_context (&ctx, NULL, NULL, NULL));
+
+    json_t *jwk = json_loads(encoded_jwk, 0, NULL);
+
+    ck_assert (NULL != jwk);
+
+    ck_assert (ctx.cookie == NULL);
+    ck_assert (ctx.verify_func == jose_soft_verify);
+    ck_assert (ctx.sign_func == jose_soft_sign);
+
+    ck_assert (ctx.key_container[ES256].key == NULL);
+
+    jose_key_t key;
+    key.alg_type = ES256;
+    key.key = (uint8_t *)jwk;
+    key.k_len = 0;
+
+    ck_assert (0 == jose_add_key (&ctx, key));
+
+    char *result = jwt_encode(&ctx, claims, ES256);
+
+    ck_assert(NULL != result);
+
+    printf ("jwt es256: %s\n", result);
+
+    ck_assert (0 == jwt_verify_sig (&ctx, result, ES256));
+
+    result[10] = 1;
+
+    ck_assert (0 != jwt_verify_sig (&ctx, result, ES256));
 
 }
 END_TEST
@@ -804,6 +848,7 @@ Suite * jwt_suite(void)
     tcase_add_test(tc_core, t_create_key_pair);
     tcase_add_test(tc_core, t_encode_helper);
     //tcase_add_test(tc_core, test_jwt_verify);
+    tcase_add_test(tc_core, t_es256_encode);
     suite_add_tcase(s, tc_core);
 
 

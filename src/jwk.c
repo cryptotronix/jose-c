@@ -203,17 +203,15 @@ jwk2rawpub (const json_t *jwk, uint8_t pub[YACL_P256_COORD_SIZE*2])
 
 }
 
-
 int
-jwk_ecdsa_sign (const uint8_t *data, size_t data_len,
-                const json_t *private_jwk,
-                const char **b64urlsig)
+jwk_ecdsa_sign_raw (const uint8_t *data, size_t data_len,
+                    const json_t *private_jwk,
+                    uint8_t raw_sig[YACL_P256_COORD_SIZE*2])
 {
-    assert (data); assert (private_jwk); assert (b64urlsig);
+    assert (data); assert (private_jwk);
 
     int rc = -1;
     uint8_t raw_private_key[YACL_P256_COORD_SIZE];
-    uint8_t raw_sig[YACL_P256_COORD_SIZE*2];
     json_t *d = json_object_get (private_jwk, "d");
     assert (d);
 
@@ -226,6 +224,20 @@ jwk_ecdsa_sign (const uint8_t *data, size_t data_len,
                               raw_private_key,
                               raw_sig);
 
+    return rc;
+}
+
+int
+jwk_ecdsa_sign (const uint8_t *data, size_t data_len,
+                const json_t *private_jwk,
+                const char **b64urlsig)
+{
+    assert (data); assert (private_jwk); assert (b64urlsig);
+
+    int rc = -1;
+    uint8_t raw_sig[YACL_P256_COORD_SIZE*2];
+
+    rc = jwk_ecdsa_sign_raw(data, data_len, private_jwk, raw_sig);
     if (rc) return rc;
 
     size_t encode_len;
@@ -260,6 +272,31 @@ jwk_ecdsa_verify (const uint8_t *data, size_t data_len,
     return rc;
 }
 
+int
+es256_soft_verify (const char *jwt, const json_t *jwk)
+{
+    assert (jwk);
+
+    int rc = -1;
+    char *dot, *sig;
+
+    char *si = jws2signing_input (jwt);
+    assert (si);
+
+    dot = (char *)memrchr (jwt, (int)'.', strlen(jwt));
+
+    if(NULL == dot)
+        return rc;
+
+    sig = dot + 1;
+
+    rc = jwk_ecdsa_verify (si, strlen(si), sig, jwk);
+
+    free (si);
+
+    return rc;
+
+}
 
 json_t *
 jwk_create_p256_key_pair (void)
