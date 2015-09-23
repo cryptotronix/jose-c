@@ -157,20 +157,20 @@ b64url_decode_helper (const char *to_dec, uint8_t *decoded, size_t len)
                                       (char **) &out);
 
     if (0 == dec_len)
-        return rc;
+        goto OUT;
 
     if (dec_len != len)
     {
-        free (out);
-        return dec_len;
+        rc = dec_len;
+        goto OUT;
     }
 
     memcpy (decoded, out, len);
 
     memset (out, 0, len);
-    free (out);
-
     rc = 0;
+OUT:
+    free (out);
 
     return rc;
 }
@@ -286,12 +286,13 @@ es256_soft_verify (const char *jwt, const json_t *jwk)
     dot = (char *)memrchr (jwt, (int)'.', strlen(jwt));
 
     if(NULL == dot)
-        return rc;
+        goto OUT;
 
     sig = dot + 1;
 
     rc = jwk_ecdsa_verify (si, strlen(si), sig, jwk);
 
+OUT:
     free (si);
 
     return rc;

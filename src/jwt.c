@@ -52,6 +52,7 @@ jwt_encode(jose_context_t *ctx, const json_t *claims, jwa_t alg)
     }
 
     json_t *head_j = json_object();
+    assert (head_j);
     json_object_set_new(head_j, "alg", json_string(alg_type));
 
     char *signing_input = make_signing_input (head_j, claims);
@@ -125,6 +126,7 @@ jwt_encode_old(json_t *claims, jwa_t alg, sign_funcp sfunc)
     }
 
     json_t *head_j = json_object();
+    assert (head_j);
     json_object_set_new(head_j, "alg", json_string(alg_type));
 
 
