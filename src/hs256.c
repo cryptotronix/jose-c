@@ -38,6 +38,7 @@ memcmp_constant_time (const void *a, const void *b, size_t size)
 
     return rc;
 }
+
 int
 hs256_soft_verify (const char *jwt, const uint8_t *key, int k_len)
 {
