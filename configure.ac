@@ -49,8 +49,8 @@ gl_INIT
 # For information on how to properly maintain the library version information,
 # refer to the libtool manual, section "Updating library version information":
 # http://www.gnu.org/software/libtool/manual/html_node/Updating-version-info.html
-AC_SUBST([JOSEC_SO_VERSION], [4:0:0])
-AC_SUBST([JOSEC_API_VERSION], [0.7])
+AC_SUBST([JOSEC_SO_VERSION], [5:0:0])
+AC_SUBST([JOSEC_API_VERSION], [0.8])
 
 # Override the template file name of the generated .pc file, so that there
 # is no need to rename the template file when the API version changes.

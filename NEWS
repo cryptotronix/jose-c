@@ -1,6 +1,12 @@
 jose-c NEWS -- history of user-visible changes
 Copyright (C) 2014-2015 Cryptotronix, LLC.
 
+Noteworthy changes in version 0.8.0 (Wednesday, 23 Sep 2015)
+----------------------------------------------------
+  * Adds more ES256 support with default software sign/verify
+  functions.
+
+
 Noteworthy changes in version 0.7.0 (Tuesday, 15 Sep 2015)
 ----------------------------------------------------
   * Adds b64url decode helper function
