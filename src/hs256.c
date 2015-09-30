@@ -5,6 +5,16 @@
 #include "jws.h"
 #include "soft_crypto.h"
 
+#if defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
+#pragma GCC diagnostic push
+#endif
+#pragma GCC diagnostic ignored "-Wunknown-pragmas"
+#pragma GCC diagnostic ignored "-Wpragmas"
+#pragma GCC diagnostic ignored "-Winitializer-overrides"
+#pragma GCC diagnostic ignored "-Woverride-init"
+#pragma GCC diagnostic ignored "-Wcast-qual"
+
+
 uint8_t *
 hs256_soft_hmac (const char *signing_input, int si_len,
                  const uint8_t *key, int k_len)
@@ -17,7 +27,7 @@ hs256_soft_hmac (const char *signing_input, int si_len,
     assert (digest);
     memset (digest, 0, JOSE_SHA256_LEN);
 
-    jose_hmac_256 (key, k_len, signing_input, si_len, digest);
+    jose_hmac_256 (key, k_len, (const uint8_t *)signing_input, si_len, digest);
 
     return digest;
 
@@ -77,7 +87,8 @@ hs256_encode(const char *signing_input, int si_len,
         assert (digest);
         memset (digest, 0, JOSE_SHA256_LEN);
 
-        jose_hmac_256 (key, k_len, signing_input, si_len, digest);
+        jose_hmac_256 (key, k_len, (const uint8_t *)signing_input, si_len,
+                       digest);
 
         assert (digest);
     }
@@ -99,3 +110,8 @@ hs256_encode(const char *signing_input, int si_len,
     return result;
 
 }
+
+
+#if defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
+#pragma GCC diagnostic pop
+#endif
