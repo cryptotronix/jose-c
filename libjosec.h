@@ -107,6 +107,10 @@ jwk_create_p256_key_pair (void);
 json_t *
 jwk_create_es256_key_pair (void);
 
+int
+jwa_ecdh (const json_t *pub_jwk, const json_t *pri_jwk,
+          uint8_t **shared_secret, size_t *ss_len);
+
 /* ------------- Utilities ---------------------*/
 int
 b64url_decode_helper (const char *to_dec, uint8_t *decoded, size_t len);

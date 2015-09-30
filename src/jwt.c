@@ -8,6 +8,16 @@
 #include "jws.h"
 #include "../libjosec.h"
 
+#if defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
+#pragma GCC diagnostic push
+#endif
+#pragma GCC diagnostic ignored "-Wunknown-pragmas"
+#pragma GCC diagnostic ignored "-Wpragmas"
+#pragma GCC diagnostic ignored "-Winitializer-overrides"
+#pragma GCC diagnostic ignored "-Woverride-init"
+#pragma GCC diagnostic ignored "-Wcast-qual"
+#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
+
 
 jwa_t
 jwa2enum (const char *str)
@@ -111,7 +121,7 @@ jwt_encode_old(json_t *claims, jwa_t alg, sign_funcp sfunc)
     assert (NULL != claims);
 
 
-    char *alg_type;
+    const char *alg_type;
 
     switch (alg)
     {
@@ -274,7 +284,6 @@ jwt2signinput (const char *jwt, uint8_t out[YACL_P256_COORD_SIZE])
     assert (NULL != jwt);
 
     char *dot;
-    uint8_t *digest;
     int rc = -1;
     int sign_input_len;
 
@@ -285,7 +294,7 @@ jwt2signinput (const char *jwt, uint8_t out[YACL_P256_COORD_SIZE])
 
     sign_input_len = dot - jwt;
 
-    rc = yacl_sha256 (jwt, sign_input_len, out);
+    rc = yacl_sha256 ((const uint8_t *)jwt, sign_input_len, out);
 
     return rc;
 
@@ -354,17 +363,17 @@ jwk2pubkey (const json_t *jwk, uint8_t pubkey[YACL_P256_COORD_SIZE*2])
     int rc = -1;
     json_t *j_x = json_object_get(jwk, "x");
     json_t *j_y = json_object_get(jwk, "y");
-    uint8_t *x, *y, *q;
-    size_t x_len, y_len, q_len;
+    uint8_t *x, *y;
+    size_t x_len, y_len;
 
     if (NULL == j_x || NULL == j_y)
         return rc;
 
-    x_len = base64url_decode_alloc (json_string_value (j_x),
+    x_len = base64url_decode_alloc ((const uint8_t *)json_string_value (j_x),
                                     strlen (json_string_value (j_x)),
                                     (char **)&x);
 
-    y_len = base64url_decode_alloc (json_string_value (j_y),
+    y_len = base64url_decode_alloc ((const uint8_t *)json_string_value (j_y),
                                     strlen (json_string_value (j_y)),
                                     (char **)&y);
 
@@ -445,7 +454,7 @@ jwt_verify (const json_t *pub_jwk, const char *jwt)
             goto FREE_JSON;
 
         printf ("pubkey: ");
-        int i;
+        size_t i;
         for (i=0; i<sizeof(pubkey);i++)
             printf("%02X", pubkey[i]);
         printf ("\n");
@@ -522,3 +531,8 @@ jwt_split (const char *jwt, json_t **header, json_t **claims)
 
 
 }
+
+
+#if defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
+#pragma GCC diagnostic pop
+#endif

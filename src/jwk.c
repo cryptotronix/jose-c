@@ -7,6 +7,17 @@
 #include "base64url.h"
 #include <yacl.h>
 #include "../libjosec.h"
+#include "jws.h"
+
+#if defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
+#pragma GCC diagnostic push
+#endif
+#pragma GCC diagnostic ignored "-Wunknown-pragmas"
+#pragma GCC diagnostic ignored "-Wpragmas"
+#pragma GCC diagnostic ignored "-Winitializer-overrides"
+#pragma GCC diagnostic ignored "-Woverride-init"
+#pragma GCC diagnostic ignored "-Wcast-qual"
+
 
 static json_t*
 build_ec_jwk (const char *x, const char *y, const char *d, const char *use,
@@ -140,7 +151,6 @@ FREE_Y:
     free (y_b64);
 FREE_X:
     free (x_b64);
-OUT:
     return jwk;
 
 }
@@ -184,7 +194,17 @@ jwk2rawpub (const json_t *jwk, uint8_t pub[YACL_P256_COORD_SIZE*2])
     json_t *x_j = json_object_get (jwk, "x");
     json_t *y_j = json_object_get (jwk, "y");
 
-    if (NULL == x_j || NULL == y_j)
+    json_t *crv = json_object_get (jwk, "crv");
+    if (NULL == crv || !json_is_string (crv))
+        return rc;
+
+    rc = strncmp (json_string_value (crv), "P-256", strlen("P-256"));
+    if (rc)
+        return rc;
+
+    if (NULL == x_j || !json_is_string (x_j))
+        return rc;
+    if (NULL == y_j || !json_is_string (y_j))
         return rc;
 
     const char *x_s = json_string_value (x_j);
@@ -198,6 +218,37 @@ jwk2rawpub (const json_t *jwk, uint8_t pub[YACL_P256_COORD_SIZE*2])
 
     rc = b64url_decode_helper(y_s, pub + YACL_P256_COORD_SIZE,
                               YACL_P256_COORD_SIZE);
+
+    return rc;
+
+}
+
+int
+jwk2rawpri (const json_t *jwk, uint8_t d[YACL_P256_COORD_SIZE])
+{
+    assert (jwk);
+    int rc = -1;
+
+    json_t *d_j = json_object_get (jwk, "d");
+
+    json_t *crv = json_object_get (jwk, "crv");
+    if (NULL == crv || !json_is_string (crv))
+        return rc;
+
+    rc = strncmp (json_string_value (crv), "P-256", strlen("P-256"));
+    if (rc)
+        return rc;
+
+    if (NULL == d_j || !json_is_string (d_j))
+        return rc;
+
+    const char *d_s = json_string_value (d_j);
+
+    if (NULL == d_s)
+        return -2;
+
+    rc = b64url_decode_helper(d_s, d, YACL_P256_COORD_SIZE);
+    if (rc) return rc;
 
     return rc;
 
@@ -290,7 +341,7 @@ es256_soft_verify (const char *jwt, const json_t *jwk)
 
     sig = dot + 1;
 
-    rc = jwk_ecdsa_verify (si, strlen(si), sig, jwk);
+    rc = jwk_ecdsa_verify ((const uint8_t *)si, strlen(si), sig, jwk);
 
 OUT:
     free (si);
@@ -356,3 +407,8 @@ jwk_create_es256_key_pair (void)
 
     return jwk;
 }
+
+
+#if defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
+#pragma GCC diagnostic pop
+#endif
