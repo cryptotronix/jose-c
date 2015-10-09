@@ -863,6 +863,60 @@ START_TEST(t_ecdh)
 }
 END_TEST
 
+START_TEST(t_regexp)
+{
+#define NUM_REG_TESTS 3
+
+    const char *jwt1 = "abcd.defgt.adr";
+    const char *jwt2 = "abcd.def8gt.adr";
+    const char *jwt3 = "abcd-.def8gt_.adr-_";
+    const char *jwt4 = "abcd-.def8gt_.";
+    const char *jwt5 = "abcd-.def8gt_.=";
+
+    mark_point();
+    int rc = jwt_check_allowed_char (jwt1, strlen(jwt1));
+    ck_assert_msg (0 == rc, "%s%d\n", "rc: ", rc);
+
+    mark_point();
+    rc = jwt_check_allowed_char (jwt2, strlen(jwt2));
+    ck_assert (0 == rc);
+
+    rc = jwt_check_allowed_char (jwt3, strlen(jwt3));
+    ck_assert (0 == rc);
+
+    rc = jwt_check_allowed_char (jwt4, strlen(jwt4));
+    ck_assert (0 == rc);
+
+    rc = jwt_check_allowed_char (jwt5, strlen(jwt5));
+    ck_assert (0 != rc);
+
+}
+END_TEST
+
+START_TEST(t_discerptor)
+{
+    const char *jwt1 = "aaa.bbb.ccc";
+
+    const char *dots[20];
+
+    int rc = jwt_discerptor (jwt1, &dots, 2);
+
+    ck_assert (rc == 0);
+
+    ck_assert ((void *)dots[0] == (void *)&jwt1[3]);
+    ck_assert ((void *)dots[1] == (void *)&jwt1[7]);
+
+    ck_assert (3 == dots[0] - &jwt1[0]);
+    rc = jwt_discerptor(jwt1, dots, 1);
+    ck_assert (rc == -1);
+
+
+    rc = jwt_discerptor(jwt1, dots, 3);
+    ck_assert (rc == -2);
+
+}
+END_TEST
+
 Suite * jwt_suite(void)
 {
     Suite *s;
@@ -898,6 +952,8 @@ Suite * jwt_suite(void)
     //tcase_add_test(tc_core, test_jwt_verify);
     tcase_add_test(tc_core, t_es256_encode);
     tcase_add_test(tc_core, t_ecdh);
+    tcase_add_test(tc_core, t_regexp);
+    tcase_add_test(tc_core, t_discerptor);
     suite_add_tcase(s, tc_core);
 
 

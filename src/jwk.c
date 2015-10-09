@@ -408,6 +408,31 @@ jwk_create_es256_key_pair (void)
     return jwk;
 }
 
+json_t *
+jwk_build_symmetric_key (json_t *alg_str, const uint8_t *key, size_t l)
+{
+    assert (key);
+    assert (alg_str);
+
+    json_t *jwk = json_object();
+    assert (jwk);
+
+    assert (0 == json_object_set (jwk, "alg", alg_str));
+
+    const char *out;
+    size_t outlen;
+
+    assert (0 == b64url_encode_helper (key, l, &out, &outlen));
+
+    assert (0 == json_object_set (jwk, "k", json_stringn (out, outlen)));
+    assert (0 == json_object_set (jwk, "kty", json_string ("oct")));
+
+    free ((void *)out);
+
+    return jwk;
+
+}
+
 
 #if defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
 #pragma GCC diagnostic pop

@@ -2,11 +2,12 @@
 #include <stdlib.h>
 #include <jansson.h>
 #include <assert.h>
-#include <string.h>
+#include "string.h"
 #include "jwt.h"
 #include "base64url.h"
 #include "jws.h"
 #include "../libjosec.h"
+#include <regex.h>
 
 #if defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
 #pragma GCC diagnostic push
@@ -287,7 +288,7 @@ jwt2signinput (const char *jwt, uint8_t out[YACL_P256_COORD_SIZE])
     int rc = -1;
     int sign_input_len;
 
-    dot = (char *)memrchr (jwt, (int)'.', strlen(jwt));
+    dot = memrchr (jwt, (int)'.', strlen(jwt));
 
     if(NULL == dot)
         return rc;
@@ -532,6 +533,59 @@ jwt_split (const char *jwt, json_t **header, json_t **claims)
 
 }
 
+int
+jwt_check_allowed_char (const char *jw, size_t l)
+{
+    assert (jw);
+    regex_t regex;
+    int rc = -1;
+
+    printf ("%s %ld\n", jw, l);
+    rc = regcomp(&regex, "([A-Za-z0-9_-]+[.])+[A-Za-z0-9_-]*$",
+                 REG_EXTENDED | REG_NOSUB);
+    if (rc)
+    {
+        fprintf(stderr, "%s\n", "Failed to build regexp");
+        return rc;
+    }
+
+    rc = regexec (&regex, jw, l, NULL, 0);
+
+    regfree (&regex);
+
+    return rc;
+
+}
+
+int
+jwt_discerptor (const char *jwt, const char **dots, int num_dots)
+{
+    int rc = jwt_check_allowed_char (jwt, strlen (jwt));
+    if (rc) return rc;
+
+    int found = 0;
+    size_t i;
+
+    size_t len = strlen (jwt);
+
+    for (i=0; i < len; i++)
+    {
+        if (*(jwt+i) == '.')
+        {
+            found += 1;
+            if (found > num_dots)
+                return -1;
+            *(dots + (found - 1)) = &jwt[i];
+        }
+    }
+
+    if (found == num_dots)
+        rc = 0;
+    else
+        rc = -2;
+
+    return rc;
+}
 
 #if defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
 #pragma GCC diagnostic pop

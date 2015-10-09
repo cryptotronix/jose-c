@@ -44,6 +44,16 @@ LT_INIT([static])
 gl_EARLY
 gl_INIT
 
+#Optional openssl dependency
+dnl Example of default-disabled feature
+AC_ARG_WITH([openssl],
+AS_HELP_STRING([--with-openssl], [Use OpenSSL for crypto backend]))
+
+AS_IF([test "x$with_openssl" = "xyes"], [
+            PKG_CHECK_MODULES([OPENSSL], [libssl])
+            PKG_CHECK_MODULES([CRYPTO], [libcrypto])
+AC_DEFINE([JOSEC_HAVE_OPENSSL], [1], [Use OpenSSL backend])
+])
 
 # Define these substitions here to keep all version information in one place.
 # For information on how to properly maintain the library version information,

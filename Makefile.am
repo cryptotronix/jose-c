@@ -65,7 +65,8 @@ libjosec_la_SOURCES =	src/jwt.c \
                         src/jws.h \
                         src/jwt.h \
                         src/soft_crypto.h \
-                        src/jwa.c
+                        src/jwa.c \
+                        src/jwe.c
 
 ## Instruct libtool to include ABI version information in the generated shared
 ## library file (.so).  The library ABI version is defined in configure.ac, so

@@ -32,7 +32,9 @@ typedef enum
     ES256,
     HS256,
     NONE,
-    JWA_MAX
+    JWA_MAX,
+    A256KW,
+    A256GCM
   } jwa_t;
 
 
@@ -91,6 +93,12 @@ jwt_verify_sig(jose_context_t *ctx, const char *jwt, jwa_t alg);
 int
 jwt_decode (const char *jwt, json_t **header, json_t **claims);
 
+
+int
+jwa_ecdh (const json_t *pub_jwk, const json_t *pri_jwk,
+          uint8_t **shared_secret, size_t *ss_len);
+
+/* ------------- JWK ---------------------*/
 int
 jwk_ecdsa_sign (const uint8_t *data, size_t data_len,
                 const json_t *private_jwk,
@@ -107,10 +115,20 @@ jwk_create_p256_key_pair (void);
 json_t *
 jwk_create_es256_key_pair (void);
 
-int
-jwa_ecdh (const json_t *pub_jwk, const json_t *pri_jwk,
-          uint8_t **shared_secret, size_t *ss_len);
+json_t *
+jwk_build_symmetric_key (json_t *alg_str, const uint8_t *key, size_t l);
 
+/* ------------- JWE ---------------------*/
+#ifdef JOSEC_HAVE_OPENSSL
+
+int
+jwe_encrypt (jwa_t alg, jwa_t enc, const uint8_t *data, size_t len,
+             const json_t *kek, const char **jwe);
+
+int
+jwe_decrypt (const json_t *kek, const char *jwe, uint8_t **data, size_t *len);
+
+#endif
 /* ------------- Utilities ---------------------*/
 int
 b64url_decode_helper (const char *to_dec, uint8_t *decoded, size_t len);
@@ -118,5 +136,8 @@ b64url_decode_helper (const char *to_dec, uint8_t *decoded, size_t len);
 int
 b64url_encode_helper (const uint8_t *to_enc, size_t inlen,
                       const char **out, size_t *outlen);
+
+int
+jwt_check_allowed_char (const char *jw, size_t l);
 
 #endif
