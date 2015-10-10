@@ -487,16 +487,18 @@ jwe_encrypt (jwa_t alg, jwa_t enc, const uint8_t *data, size_t len,
 
   uint8_t raw_tag[JWE_A256GCM_TAG_SIZE];
 
-
-  rc = aes_gcm_encrypt(data, len, (uint8_t *) aad, strlen (aad),
-                       raw_cek, raw_iv,
-                       ciphertext, raw_tag);
-  if (rc != len)
+  size_t outl;
+  outl = aes_gcm_encrypt(data, len, (uint8_t *) aad, strlen (aad),
+                         raw_cek, raw_iv,
+                         ciphertext, raw_tag);
+  if (outl != len)
     {
       fprintf (stderr, "%s\n", "len mismatch");
+      rc = -2;
       goto CIPHERTEXT;
     }
 
+  rc = 0;
 
   json_t *cipher;
   rc = bytes2b64urljsonstr (ciphertext, len, &cipher);
@@ -697,17 +699,19 @@ jwe_decrypt (const json_t *kek, const char *jwe, uint8_t **data, size_t *len)
   memset (plaintext, 0, plaintextl + 1);
 
   /* decrypt the ciphertext */
-  rc = aes_gcm_decrypt((uint8_t *)raw_ciphertext, raw_ciphertextl,
-                       (uint8_t *)hdr, hdrl,
-                       raw_tag,
-                       raw_cek,
-                       raw_iv,
-                       plaintext);
+  size_t tmp;
+  tmp = aes_gcm_decrypt((uint8_t *)raw_ciphertext, raw_ciphertextl,
+                        (uint8_t *)hdr, hdrl,
+                        raw_tag,
+                        raw_cek,
+                        raw_iv,
+                        plaintext);
 
-  if (rc != plaintextl)
+  if (tmp != plaintextl)
     {
       free ((void*) plaintext);
       fprintf (stderr, "%s\n", "Decryption failed");
+      rc = -3;
       goto FREE_CIPHER;
     }
 
