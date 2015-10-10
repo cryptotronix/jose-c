@@ -6,6 +6,11 @@
        src="https://scan.coverity.com/projects/4903/badge.svg"/>
 </a>
 
+Currently supported mechanisms:
 
-This is a WIP and it's probably not best to use this library until I
-say so :p
+- HS256
+- ES256
+
+Supported JWE mechanisms:
+
+- alg: A256KW, enc: A256GCM
