@@ -316,29 +316,42 @@ jwk2aes256kwkey (const json_t *jwk, uint8_t key[JWE_AESKW_KEK_SIZE])
   assert (jwk);
   int rc;
 
-  json_t *alg = json_object_get (jwk, "alg");
-  json_t *kty = json_object_get (jwk, "kty");
-  json_t *k = json_object_get (jwk, "k");
+  static const char *fmt = "{s:s, s:s, s:s}";
 
-  assert (alg);
-  assert (kty);
-  assert (k);
+  const char *alg;
+  const char *kty;
+  const char *k;
 
-  rc = strncmp ("oct", json_string_value (kty), strlen ("oct"));
+  json_error_t jerr;
+
+  rc = json_unpack_ex ((json_t *)jwk, &jerr, JSON_STRICT, fmt,
+                       "alg", &alg,
+                       "kty", &kty,
+                       "k", &k);
+
+  if (rc)
+    {
+      fprintf (stderr, "Json Error: %s, %s, %d, %d, %d\n",
+               jerr.text, jerr.source,
+               jerr.line, jerr.column, jerr.position);
+      return rc;
+    }
+
+  rc = strncmp ("oct", kty, strlen ("oct") + 1);
   if (rc)
     {
       fprintf (stderr, "%s\n", "Not an oct" );
       return rc;
     }
 
-  rc = strncmp ("A256KW", json_string_value (alg), strlen ("A256KW"));
+  rc = strncmp ("A256KW", alg, strlen ("A256KW") + 1);
   if (rc)
     {
       fprintf (stderr, "%s\n", "Not A256KW" );
       return rc;
     }
 
-  rc = b64url_decode_helper (json_string_value (k), key, JWE_AESKW_KEK_SIZE);
+  rc = b64url_decode_helper (k, key, JWE_AESKW_KEK_SIZE);
 
   return rc;
 
@@ -449,7 +462,6 @@ jwe_encrypt (jwa_t alg, jwa_t enc, const uint8_t *data, size_t len,
   if (NULL == hdr)
     return rc;
 
-
   /* Create the CEK */
   static uint8_t raw_cek[JWE_AESKW_KEY_SIZE];
   rc = RAND_bytes (raw_cek, sizeof(raw_cek));
@@ -457,8 +469,6 @@ jwe_encrypt (jwa_t alg, jwa_t enc, const uint8_t *data, size_t len,
     {
       goto OUT;
     }
-
-
 
   json_t *cek;
   rc = create_cek (kek, raw_cek, &cek);
@@ -472,10 +482,12 @@ jwe_encrypt (jwa_t alg, jwa_t enc, const uint8_t *data, size_t len,
       goto OUT;
     }
 
-
   json_t *iv;
   rc = bytes2b64urljsonstr (raw_iv, JWE_A256GCM_IV_SIZE, &iv);
-  if (rc) return rc;
+  if (rc)
+    {
+      goto OUT;
+    }
 
   /* Produce the cipher text */
 
@@ -527,6 +539,8 @@ validate_header (const char *hdr, size_t l)
 {
   int rc = -1;
   const char *json_hdr;
+  json_error_t jerr;
+
 
   printf ("hdr: %s\n", hdr);
 
@@ -540,10 +554,11 @@ validate_header (const char *hdr, size_t l)
     }
 
 
-  json_t *jhdr = json_loads(json_hdr, 0, NULL);
+  json_t *jhdr = json_loads(json_hdr, JSON_DISABLE_EOF_CHECK, &jerr);
   if (NULL == jhdr)
     {
-      fprintf (stderr, "%s: %s\n", "Failed to json decode the header",
+      fprintf (stderr, "%s: %s: %s\n", "Failed to json decode the header",
+               jerr.text,
                json_hdr);
       goto OUT;
     }
@@ -554,7 +569,6 @@ validate_header (const char *hdr, size_t l)
   const char *alg;
   const char *enc;
 
-  json_error_t jerr;
 
   rc = json_unpack_ex ((json_t *)jhdr, &jerr, JSON_STRICT, hdr_fmt,
                        "alg", &alg,
@@ -640,18 +654,29 @@ jwe_decrypt (const json_t *kek, const char *jwe, uint8_t **data, size_t *len)
   /* Validate the header */
 
   rc = validate_header (hdr, hdrl);
-  if (rc) goto FREE;
+  if (rc)
+    {
+      fprintf (stderr, "%s\n", "Failed to decode header");
+      goto FREE;
+    }
 
   /* Get the cek */
   uint8_t wrapped_cek[JWE_AESKW_WRAPPED_SIZE];
   rc = b64url_decode_helper (cek, wrapped_cek, JWE_AESKW_WRAPPED_SIZE);
-  if (rc) goto FREE;
+  if (rc)
+    {
+      fprintf (stderr, "%s\n", "Failed to decode CEK");
+      rc = -2;
+      goto FREE;
+    }
+
 
   uint8_t raw_kek[JWE_AESKW_KEK_SIZE];
   rc = jwk2aes256kwkey (kek, raw_kek);
   if (rc)
     {
       fprintf (stderr, "%s\n", "Failed to get jwk" );
+      rc = -3;
       goto FREE;
     }
 
@@ -670,12 +695,20 @@ jwe_decrypt (const json_t *kek, const char *jwe, uint8_t **data, size_t *len)
   /* Get the IV */
   uint8_t raw_iv[JWE_A256GCM_IV_SIZE];
   rc = b64url_decode_helper (iv, raw_iv, JWE_A256GCM_IV_SIZE);
-  if (rc) goto FREE;
+  if (rc)
+    {
+      fprintf (stderr, "%s\n", "Invalid IV size");
+      goto FREE;
+    }
 
   /* Get the tag */
   uint8_t raw_tag[JWE_A256GCM_TAG_SIZE];
   rc = b64url_decode_helper (tag, raw_tag, JWE_A256GCM_TAG_SIZE);
-  if (rc) goto FREE;
+  if (rc)
+    {
+      fprintf (stderr, "%s\n", "Invalid tag size");
+      goto FREE;
+    }
 
   /* Get the ciphertext */
   const uint8_t *raw_ciphertext;
@@ -687,6 +720,7 @@ jwe_decrypt (const json_t *kek, const char *jwe, uint8_t **data, size_t *len)
   if (raw_ciphertextl <= 0)
     {
       rc = -2;
+      fprintf (stderr, "%s\n", "Failed to decode ciphertext");
       goto FREE_CIPHER;
     }
   else
@@ -711,7 +745,7 @@ jwe_decrypt (const json_t *kek, const char *jwe, uint8_t **data, size_t *len)
     {
       free ((void*) plaintext);
       fprintf (stderr, "%s\n", "Decryption failed");
-      rc = -3;
+      rc = -10;
       goto FREE_CIPHER;
     }
 
