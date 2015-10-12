@@ -269,12 +269,14 @@ bytes2b64urljsonstr (const uint8_t *data, size_t len, json_t **out)
   const char *str;
   int rc = b64url_encode_helper (data, len, &str, &outlen);
 
-  if (rc) return rc;
+  if (rc) goto OUT;
 
   *out = json_stringn (str, outlen);
+  rc = 0;
+ OUT:
   free ((void *) str);
 
-  return 0;
+  return rc;
 
 }
 
@@ -630,6 +632,7 @@ jwe_decrypt (const json_t *kek, const char *jwe, uint8_t **data, size_t *len)
       return rc;
     }
 
+  size_t jwel = strlen (jwe);
   /* split out the parts */
   size_t hdrl = dots[0] - &jwe[0];
   const char *hdr = strndup (jwe, hdrl);
@@ -647,7 +650,7 @@ jwe_decrypt (const json_t *kek, const char *jwe, uint8_t **data, size_t *len)
   const char *ciphertext = strndup (dots[2]+1, ciphertextl);
   assert (ciphertext);
 
-  size_t tagl = dots[4] - dots[3] -1;
+  size_t tagl = &jwe[jwel] - dots[3] -1;
   const char *tag = strndup (dots[3]+1, tagl);
   assert (tag);
 
