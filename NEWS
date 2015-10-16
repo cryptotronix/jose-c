@@ -1,7 +1,13 @@
 jose-c NEWS -- history of user-visible changes
 Copyright (C) 2014-2015 Cryptotronix, LLC.
 
-Noteworthy changes in version 0.10.0 (TBD)
+Noteworthy changes in version 0.11.0 (Friday, 16 Oct 2015)
+----------------------------------------------------
+  * Fixes realloc bug in jwe_encrypt
+  * Fixes pkg-config template for missing directory
+
+
+Noteworthy changes in version 0.10.0 (Thursday, 8 Oct 2015)
 ----------------------------------------------------
   * Adds JWE support for alg=A256KW, enc=A256GCM if compiled
   --with-openssl.

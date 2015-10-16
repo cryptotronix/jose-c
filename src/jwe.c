@@ -393,6 +393,20 @@ create_cek (const json_t *kek, const uint8_t key[JWE_AESKW_KEY_SIZE],
   return rc;
 }
 
+static char*
+_realloc_zero (char *orig, size_t nl)
+{
+  size_t ol = strlen(orig);
+  assert (nl > ol);
+  assert (NULL != orig);
+
+  char *out = realloc (orig, nl);
+  assert (out);
+  memset (out+ol, 0, nl-ol);
+
+  return out;
+}
+
 static const char *
 build_jwe (json_t *hdr, json_t *cek, json_t *iv,
            json_t *ciphertext, json_t *tag)
@@ -407,6 +421,7 @@ build_jwe (json_t *hdr, json_t *cek, json_t *iv,
   size_t l = json_string_length (hdr);
   size_t tot = l + 2;
   char *tmp = malloc (tot);
+  memset (tmp, 0, tot);
   assert (tmp);
 
   strncpy (tmp, json_string_value (hdr), l);
@@ -415,8 +430,8 @@ build_jwe (json_t *hdr, json_t *cek, json_t *iv,
   l = json_string_length (cek);
   tot = tot + l + 2;
 
-  tmp = realloc (tmp, tot);
-  assert (tmp);
+  tmp = _realloc_zero (tmp, tot);
+
   strncat (tmp, json_string_value (cek), l);
   strcat (tmp, ".");
 
@@ -424,7 +439,7 @@ build_jwe (json_t *hdr, json_t *cek, json_t *iv,
   l = json_string_length (iv);
   tot = tot + l + 2;
 
-  tmp = realloc (tmp, tot);
+  tmp = _realloc_zero (tmp, tot);
   assert (tmp);
   strncat (tmp, json_string_value (iv), l);
   strcat (tmp, ".");
@@ -433,7 +448,7 @@ build_jwe (json_t *hdr, json_t *cek, json_t *iv,
   l = json_string_length (ciphertext);
   tot = tot + l + 2;
 
-  tmp = realloc (tmp, tot);
+  tmp = _realloc_zero (tmp, tot);
   assert (tmp);
   strncat (tmp, json_string_value (ciphertext), l);
   strcat (tmp, ".");
@@ -442,7 +457,7 @@ build_jwe (json_t *hdr, json_t *cek, json_t *iv,
   l = json_string_length (tag);
   tot = tot + l + 1;
 
-  tmp = realloc (tmp, tot);
+  tmp = _realloc_zero (tmp, tot);
   assert (tmp);
   strncat (tmp, json_string_value (tag), l);
 

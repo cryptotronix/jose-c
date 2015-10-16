@@ -31,7 +31,7 @@ check_libjosec_LDADD = $(LIBS_TO_ADD) $(CRYPTO_LIBS)
 
 check_jwe_SOURCES = test_jwe.c $(top_builddir)/libjosec.h
 check_jwe_CFLAGS = @CHECK_CFLAGS@ $(CFLAGS_TO_ADD)
-check_jwe_LDADD = $(LIBS_TO_ADD) $(CRYPTO_LIBS)
+check_jwe_LDADD = $(LIBS_TO_ADD) $(CRYPTO_LIBS) $(OPENSSL_LIBS)
 
 # jwtwrap_SOURCES = jwt_wrap.c $(top_builddir)/libjosec.h
 # jwtwrap_CFLAGS = $(CFLAGS_TO_ADD)

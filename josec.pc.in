@@ -8,4 +8,4 @@ Description: Library for produce JOSE messages
 Version: @PACKAGE_VERSION@
 URL: @PACKAGE_URL@
 Libs: -L${libdir} -ljosec
-Cflags: -I${includedir}/josec-@JOSEC_API_VERSION@ -I${libdir}/josec-@JOSEC_API_VERSION@/include
+Cflags: -I${includedir}/josec-@JOSEC_API_VERSION@

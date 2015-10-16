@@ -158,6 +158,35 @@ START_TEST(test_jwe_failures)
 }
 END_TEST
 
+START_TEST(t_loop)
+{
+  int i;
+  for (i=0; i<1000; i++)
+    {
+      json_t *alg = json_string ("A256KW");
+      uint8_t t[32];
+      memset (t, 0x61, 32);
+
+      json_t *jwk = jwk_build_symmetric_key (alg, t, 32);
+
+      uint8_t p[256];
+      memset (p, 0x62, 256);
+
+      const char *jwe;
+      int rc = jwe_encrypt (A256KW, A256GCM, p, 256, jwk, &jwe);
+
+      ck_assert_msg (0 == rc, "RC = %d", rc);
+      printf ("JWE: %s\n", jwe);
+
+      uint8_t *out;
+      size_t outl;
+      rc = jwe_decrypt (jwk, jwe, &out, &outl);
+
+      ck_assert_msg (0 == rc, "RC: %d", rc);
+    }
+}
+END_TEST
+
 static Suite *
 jwe_suite(void)
 {
@@ -169,9 +198,11 @@ jwe_suite(void)
     /* Core test case */
     tc_core = tcase_create("Core");
 
-    //tcase_add_test(tc_core, t_build_key);
-    //tcase_add_test(tc_core, test_jwe_encrypt);
+
+    tcase_add_test(tc_core, t_build_key);
+    tcase_add_test(tc_core, test_jwe_encrypt);
     tcase_add_test(tc_core, test_jwe_failures);
+    tcase_add_test(tc_core, t_loop);
 
     suite_add_tcase(s, tc_core);
 
@@ -188,6 +219,8 @@ int main(void)
     s = jwe_suite();
     sr = srunner_create(s);
 
+    init_ssl();
+    srunner_set_fork_status (sr, CK_NOFORK);
     srunner_run_all(sr, CK_NORMAL);
     number_failed = srunner_ntests_failed(sr);
     srunner_free(sr);
