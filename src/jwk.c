@@ -78,8 +78,8 @@ OUT:
     return jwk;
 }
 
-static json_t *
-raw_pubkey2jwk (uint8_t *q, size_t q_len)
+json_t *
+jwk_pubkey2jwk (uint8_t *q, size_t q_len, const char *kid)
 {
     uint8_t *x, *y;
     char *x_b64, *y_b64;
@@ -101,8 +101,7 @@ raw_pubkey2jwk (uint8_t *q, size_t q_len)
     if (0 == (y_b64_len = base64url_encode_alloc (y, COORD_LEN, &y_b64)))
         goto FREE_Y;
 
-    /* for now ... set to one */
-    jwk = build_ec_jwk (x_b64, y_b64, NULL, "sig", "1");
+    jwk = build_ec_jwk (x_b64, y_b64, NULL, "sig", kid);
 
 FREE_Y:
     free (y_b64);

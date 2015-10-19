@@ -10,7 +10,22 @@
 #include "jwk.h"
 #include <regex.h>
 
-#ifdef JOSEC_HAVE_OPENSSL
+#ifndef JOSEC_HAVE_OPENSSL
+
+int
+jwe_encrypt (jwa_t alg, jwa_t enc, const uint8_t *data, size_t len,
+             const json_t *kek, const char **jwe)
+{
+  return -10;
+}
+
+int
+jwe_decrypt (const json_t *kek, const char *jwe, uint8_t **data, size_t *len)
+{
+  return -10;
+}
+
+#elif JOSEC_HAVE_OPENSSL
 
 #define JWE_AESKW_KEK_SIZE 32
 #define JWE_AESKW_WRAPPED_SIZE 40

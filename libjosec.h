@@ -118,9 +118,13 @@ jwk_create_es256_key_pair (void);
 json_t *
 jwk_build_symmetric_key (json_t *alg_str, const uint8_t *key, size_t l);
 
-/* ------------- JWE ---------------------*/
-#ifdef JOSEC_HAVE_OPENSSL
+json_t *
+jwk_pubkey2jwk (uint8_t *q, size_t q_len, const char *kid);
 
+/* ------------- JWE ---------------------*/
+
+/* Unless this library is built --with-openssl, these functions will
+   return -10. */
 int
 jwe_encrypt (jwa_t alg, jwa_t enc, const uint8_t *data, size_t len,
              const json_t *kek, const char **jwe);
@@ -128,7 +132,6 @@ jwe_encrypt (jwa_t alg, jwa_t enc, const uint8_t *data, size_t len,
 int
 jwe_decrypt (const json_t *kek, const char *jwe, uint8_t **data, size_t *len);
 
-#endif
 /* ------------- Utilities ---------------------*/
 int
 b64url_decode_helper (const char *to_dec, uint8_t *decoded, size_t len);

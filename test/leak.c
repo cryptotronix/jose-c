@@ -9,6 +9,16 @@
 #include "jwt.h"
 #include <mcheck.h>
 
+#if defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
+#pragma GCC diagnostic push
+#endif
+#pragma GCC diagnostic ignored "-Wunknown-pragmas"
+#pragma GCC diagnostic ignored "-Wpragmas"
+#pragma GCC diagnostic ignored "-Winitializer-overrides"
+#pragma GCC diagnostic ignored "-Woverride-init"
+#pragma GCC diagnostic ignored "-Wcast-qual"
+
+
 int
 main (void)
 {
@@ -26,8 +36,8 @@ main (void)
     assert (0 == jose_create_context (&ctx, NULL, NULL, NULL));
 
     assert (ctx.cookie == NULL);
-    assert (ctx.verify_func == jose_soft_verify);
-    assert (ctx.sign_func == jose_soft_sign);
+    assert ((void *)ctx.verify_func == (void *)jose_soft_verify);
+    assert ((void *)ctx.sign_func == (void *)jose_soft_sign);
 
     assert (ctx.key_container[HS256].key == NULL);
 
@@ -55,3 +65,8 @@ main (void)
 
     muntrace();
 }
+
+
+#if defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
+#pragma GCC diagnostic pop
+#endif
