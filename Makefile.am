@@ -28,10 +28,12 @@ AM_CFLAGS = -DDATA_DIR=\"$(pkgdatadir)\"
 ## to provide a way for the user to supply additional arguments.
 ACLOCAL_AMFLAGS = ${ACLOCAL_FLAGS} -I m4
 
-libjosec_la_CPPFLAGS = $(YACL_CFLAGS) $(JANSSON_CFLAGS) \
+libjosec_la_CPPFLAGS = $(CRYPTO_CFLAGS) $(OPENSSL_CFLAGS) \
+                       $(YACL_CFLAGS) $(JANSSON_CFLAGS) \
 		       -I$(top_srcdir)/lib $(LIBGCRYPT_CFLAGS)
 
-libjosec_la_LIBADD = $(YACL_LIBS) $(JANSSON_LIBS) \
+libjosec_la_LIBADD = $(CRYPTO_LIBS) $(OPENSSL_LIBS) \
+                     $(YACL_LIBS) $(JANSSON_LIBS) \
                      lib/libgnu.la $(LIBGCRYPT_LIBS)
 
 

@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with libcryptoauth.  If not, see <http://www.gnu.org/licenses/>.
 
-AC_INIT([libjose-c], [0.11.0], [bugs@cryptotronix.com], [josec],
+AC_INIT([libjose-c], [0.12.0], [bugs@cryptotronix.com], [josec],
                      [https://github.com/cryptotronix/jose-c])
 AC_PREREQ([2.59])
 AC_USE_SYSTEM_EXTENSIONS
@@ -59,8 +59,8 @@ AC_DEFINE([JOSEC_HAVE_OPENSSL], [1], [Use OpenSSL backend])
 # For information on how to properly maintain the library version information,
 # refer to the libtool manual, section "Updating library version information":
 # http://www.gnu.org/software/libtool/manual/html_node/Updating-version-info.html
-AC_SUBST([JOSEC_SO_VERSION], [7:1:0])
-AC_SUBST([JOSEC_API_VERSION], [0.10])
+AC_SUBST([JOSEC_SO_VERSION], [8:0:0])
+AC_SUBST([JOSEC_API_VERSION], [0.11])
 
 # Override the template file name of the generated .pc file, so that there
 # is no need to rename the template file when the API version changes.
@@ -76,4 +76,5 @@ echo "
      C Compiler.....: $CC $CFLAGS $CPPFLAGS
      C++ Compiler...: $CXX $CXXFLAGS $CPPFLAGS
      Linker.........: $LD $LDFLAGS $LIBS
+     Using OpenSSL..: $with_openssl
 "
