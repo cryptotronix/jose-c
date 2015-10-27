@@ -33,7 +33,7 @@ base64url_encode_alloc (const uint8_t *data, size_t len, char **out)
 }
 
 
-ssize_t
+size_t
 base64url_decode_alloc (const uint8_t *data, size_t l, char **out)
 {
     size_t i, s, pad;
@@ -69,7 +69,7 @@ base64url_decode_alloc (const uint8_t *data, size_t l, char **out)
 
     if (!base64_decode_alloc (burl, pad, out, &s))
     {
-        s = -1;
+        s = 0;
     }
 
     free (burl);
