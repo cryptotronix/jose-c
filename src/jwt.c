@@ -454,22 +454,6 @@ jwt_verify (const json_t *pub_jwk, const char *jwt)
         if (rc)
             goto FREE_JSON;
 
-        printf ("pubkey: ");
-        size_t i;
-        for (i=0; i<sizeof(pubkey);i++)
-            printf("%02X", pubkey[i]);
-        printf ("\n");
-
-        printf ("digest: ");
-        for (i=0; i<sizeof(digest);i++)
-            printf("%02X", digest[i]);
-        printf ("\n");
-
-        printf ("sig: ");
-        for (i=0; i<sizeof(sig);i++)
-            printf("%02X", sig[i]);
-        printf ("\n");
-
         rc = yacl_ecdsa_verify (pubkey, digest, sig);
 
     }
@@ -545,7 +529,6 @@ jwt_check_allowed_char (const char *jw, size_t l)
     regex_t regex;
     int rc = -1;
 
-    printf ("%s %ld\n", jw, l);
     rc = regcomp(&regex, "([A-Za-z0-9_-]+[.])+[A-Za-z0-9_-]*$",
                  REG_EXTENDED | REG_NOSUB);
     if (rc)
