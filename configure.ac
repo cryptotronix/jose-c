@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with libcryptoauth.  If not, see <http://www.gnu.org/licenses/>.
 
-AC_INIT([libjose-c], [0.12.1], [bugs@cryptotronix.com], [josec],
+AC_INIT([libjose-c], [0.13.0], [bugs@cryptotronix.com], [josec],
                      [https://github.com/cryptotronix/jose-c])
 AC_PREREQ([2.59])
 AC_USE_SYSTEM_EXTENSIONS
@@ -55,6 +55,11 @@ AS_IF([test "x$with_openssl" = "xyes"], [
 AC_DEFINE([JOSEC_HAVE_OPENSSL], [1], [Use OpenSSL backend])
 ])
 
+AC_ARG_ENABLE([tools],
+AS_HELP_STRING([--enable-tools], [Build binary helper tools]))
+
+AM_CONDITIONAL([BUILD_TOOLS], [test "x$enable_tools" = "xyes"])
+
 # Define these substitions here to keep all version information in one place.
 # For information on how to properly maintain the library version information,
 # refer to the libtool manual, section "Updating library version information":
@@ -77,4 +82,5 @@ echo "
      C++ Compiler...: $CXX $CXXFLAGS $CPPFLAGS
      Linker.........: $LD $LDFLAGS $LIBS
      Using OpenSSL..: $with_openssl
+     Build Tools....: $enable_tools
 "

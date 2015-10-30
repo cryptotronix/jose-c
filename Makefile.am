@@ -36,6 +36,12 @@ libjosec_la_LIBADD = $(CRYPTO_LIBS) $(OPENSSL_LIBS) \
                      $(YACL_LIBS) $(JANSSON_LIBS) \
                      lib/libgnu.la $(LIBGCRYPT_LIBS)
 
+if BUILD_TOOLS
+bin_PROGRAMS = jwt-decode
+jwt_decode_SOURCES = src/tools/jwt_decode.c
+jwt_decode_CFLAGS = $(JANSSON_CFLAGS) -I$(top_srcdir)/lib
+jwt_decode_LDADD = libjosec.la $(JANSSON_LIBS) lib/libgnu.la
+endif
 
 ## Define a libtool archive target "libjosec-@EXAMPLE_API_VERSION@.la", with
 ## @JOSEC_API_VERSION@ substituted into the generated Makefile at configure
