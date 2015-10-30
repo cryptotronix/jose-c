@@ -1,6 +1,11 @@
 jose-c NEWS -- history of user-visible changes
 Copyright (C) 2014-2015 Cryptotronix, LLC.
 
+Noteworthy changes in version 0.13.0 (Friday, 30 Oct 2015)
+----------------------------------------------------
+  * Adds --enable-tools target that builds binaries, for now: builds
+  jwt-decode to easily decode JWTs on the command line.
+
 Noteworthy changes in version 0.12.0 (Monday, 19 Oct 2015)
 ----------------------------------------------------
   * Makes available pub2jwk
