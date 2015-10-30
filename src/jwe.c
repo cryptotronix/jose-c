@@ -573,9 +573,6 @@ validate_header (const char *hdr, size_t l)
   const char *json_hdr;
   json_error_t jerr;
 
-
-  printf ("hdr: %s\n", hdr);
-
   ssize_t len = base64url_decode_alloc ((const uint8_t *)hdr, l,
                                         (char **)&json_hdr);
 
