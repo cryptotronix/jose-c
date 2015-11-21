@@ -61,7 +61,7 @@ typedef int (*verify_funcp)(const char *,
 typedef struct
 {
   jwa_t alg_type;
-  uint8_t *key;
+  const uint8_t *key;
   unsigned int k_len;
 } jose_key_t;
 
