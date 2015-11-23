@@ -128,7 +128,7 @@ main(int argc, char *argv[])
   char *jwt = trim(line);
   assert (jwt);
 
-  json_t *header, *claims;
+  json_t *header, *claims, *out;
 
   rc = jwt_decode (jwt, &header, &claims);
 
@@ -138,21 +138,22 @@ main(int argc, char *argv[])
       goto OUT;
     }
 
-  rc = json_dumpf (header, stdout, JSON_INDENT(2));
-  if (rc)
-    {
-      fprintf (stderr, "%s: %d\n", "Failed to parse header", rc);
-      goto OUT;
-    }
-  printf ("\n");
-  rc = json_dumpf (claims, stdout, JSON_INDENT(2));
-  if (rc)
-    {
-      fprintf (stderr, "%s: %d\n", "Failed to parse claims", rc);
-      goto OUT;
-    }
-  printf ("\n");
+  /* Package the decoded JWT into it's three parts */
+  out = json_object();
+  assert (NULL != out);
 
+  assert (0 == json_object_set (out, "header", header));
+  assert (0 == json_object_set (out, "claims", claims));
+
+  rc = json_dumpf (out, stdout, JSON_INDENT(2) | JSON_PRESERVE_ORDER);
+  if (rc)
+    {
+      fprintf (stderr, "%s: %d\n", "Failed to print response", rc);
+      goto OUT;
+    }
+
+  printf ("\n");
+  json_decref (out);
   free (line);
  OUT:
   exit (rc);
