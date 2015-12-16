@@ -107,6 +107,7 @@ hs256_encode(const char *signing_input, int si_len,
         jws_append_signing_input (signing_input, si_len,
                                   digest, JOSE_SHA256_LEN);
 
+    free (digest);
     return result;
 
 }
