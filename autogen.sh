@@ -25,6 +25,24 @@ fi
 if [ ! -e "config.rpath" ]; then
     touch config.rpath
 fi
+
+pkg-config --exists yacl
+HAVE_YACL=$?
+
+if [ $HAVE_YACL -eq 0 ]; then
+    echo libyacl already installed
+else
+    wget https://github.com/cryptotronix/yacl/releases/download/0.3/yacl-0.3.tar.gz
+    tar xf yacl*.gz
+    cd yacl*
+    ./configure
+    make
+    echo Enter password to install libcrypti2c library
+    sudo make install
+    cd ..
+    sudo ldconfig
+fi
+
 autoreconf --force --install
 #./configure
 #make
