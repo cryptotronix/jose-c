@@ -52,6 +52,13 @@ you know, life happens and we all make compromises.
 Anyway, probably what I should do is just put the sha256 file in here
 so there's no external depends.
 
+## RFC7520 Tests
+
+This library does not support all algorithms and RFC 7520 only
+publishes test vectors for some algorithms. Therefore, the
+intersection of supported algorithms by this library and published
+test vectors is currently only HS256.
+
 
 ## License
 
