@@ -1,8 +1,12 @@
+sudo: required
+dist: trusty
 language: c
 compiler:
   - gcc
-  - clang
 # Change this to your needs
-before_install: sudo apt-get install libxml2-dev check gnulib libssl-dev pkg-config
+before_install:
+  - sudo add-apt-repository ppa:cryptotronix/ppa  -y
+  - sudo apt-get update -q
+  - sudo apt-get install yacl-dev libssl-dev pkg-config
 
 script: ./autogen.sh

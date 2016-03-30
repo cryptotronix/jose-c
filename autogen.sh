@@ -30,15 +30,8 @@ HAVE_YACL=$?
 if [ $HAVE_YACL -eq 0 ]; then
     echo libyacl already installed
 else
-    wget https://github.com/cryptotronix/yacl/releases/download/0.3/yacl-0.3.tar.gz
-    tar xf yacl*.gz
-    cd yacl*
-    ./configure
-    make
-    echo Enter password to install libcrypti2c library
-    sudo make install
-    cd ..
-    sudo ldconfig
+    echo "Get yacl from add-apt-repository ppa:cryptotronix/ppa"
+    exit 1
 fi
 
 autoreconf --force --install
