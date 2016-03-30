@@ -3,9 +3,15 @@
 #include <stdint.h>
 #include <string.h>
 #include <ctype.h>
+#ifdef JOSEC_HAVE_GLIB
+#include <glib.h>
+#endif
 
 char *trim(char *str)
 {
+#ifdef JOSEC_HAVE_GLIB
+    return g_strstrip (str);
+#else
     size_t len = 0;
     char *frontp = str;
     char *endp = NULL;
@@ -43,4 +49,5 @@ char *trim(char *str)
 
 
     return str;
+#endif
 }

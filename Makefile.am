@@ -35,6 +35,11 @@ libjosec_la_CPPFLAGS += $(GUILE_CFLAGS)
 libjosec_la_LIBADD += $(GUILE_LIBS)
 endif
 
+if HAVE_GLIB
+libjosec_la_CPPFLAGS += $(LIBGLIB_CFLAGS)
+libjosec_la_LIBADD += $(LIBGLIB_LIBS)
+endif
+
 if BUILD_TOOLS
 bin_PROGRAMS = jwt-decode
 jwt_decode_SOURCES = src/tools/jwt_decode.c
@@ -69,7 +74,6 @@ libjosec_la_SOURCES += src/guile/extension.c \
 endif
 
 libjosec_la_LDFLAGS = -version-info $(JOSEC_SO_VERSION) -release $(JOSEC_API_VERSION)
-
 
 josec_includedir = $(includedir)/josec-$(JOSEC_API_VERSION)
 nobase_josec_include_HEADERS = libjosec.h

@@ -55,6 +55,14 @@ AS_IF([test "x$with_openssl" = "xyes"], [
 AC_DEFINE([JOSEC_HAVE_OPENSSL], [1], [Use OpenSSL backend])
 ])
 
+AC_ARG_WITH([glib],
+AS_HELP_STRING([--with-glib], [Use Glib for some core helpful functions]))
+AS_IF([test "x$with_glib" = "xyes"], [
+            PKG_CHECK_MODULES([LIBGLIB], [glib-2.0])
+AC_DEFINE([JOSEC_HAVE_GLIB], [1], [Use GLIB])
+AM_CONDITIONAL([HAVE_GLIB], [test "x$with_glib" = "xyes"])
+])
+
 AC_ARG_ENABLE([tools],
 AS_HELP_STRING([--enable-tools], [Build binary helper tools]))
 
