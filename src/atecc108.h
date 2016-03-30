@@ -1,7 +1,6 @@
 #ifndef ATECC108_H_
 #define ATECC108_H_
 
-#include <gcrypt.h>
 
 int
 ecc108_sign (const uint8_t *to_sign, size_t len,

@@ -1,11 +1,9 @@
 /* -*- mode: c; c-file-style: "gnu" -*- */
 #include "config.h"
-#include <check.h>
 #include <stdlib.h>
 #include "../libjosec.h"
 #include <jansson.h>
 #include <assert.h>
-#include <gcrypt.h>
 #include <yacl.h>
 #include "../src/hs256.h"
 #include "soft_crypto.h"

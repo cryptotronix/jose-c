@@ -5,7 +5,7 @@
 #include <jansson.h>
 #include "../libjosec.h"
 #include <assert.h>
-#include <gcrypt.h>
+//#include <gcrypt.h>
 #include "trim.h"
 
 

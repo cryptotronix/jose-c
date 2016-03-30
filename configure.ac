@@ -24,8 +24,8 @@ AC_CONFIG_MACRO_DIR([m4])
 PKG_PROG_PKG_CONFIG
 AM_PROG_AR
 
-#Check for check
-PKG_CHECK_MODULES([CHECK], [check >= 0.9.8])
+#Check for libglib (unit testing)
+PKG_CHECK_MODULES([LIBGLIB], [glib-2.0])
 
 #Check for libjannson
 PKG_CHECK_MODULES([JANSSON], [jansson])
@@ -63,6 +63,8 @@ AM_CONDITIONAL([BUILD_TOOLS], [test "x$enable_tools" = "xyes"])
 AC_ARG_WITH([guile],
 AS_HELP_STRING([--with-guile], [Build the guile extensions]))
 AM_CONDITIONAL([HAVE_GUILE], [test "x$with_guile" = "xyes"])
+
+
 
 AS_IF([test "x$with_guile" = "xyes"], [
 # Guile Extensions

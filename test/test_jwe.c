@@ -1,11 +1,9 @@
 /* -*- mode: c; c-file-style: "gnu" -*- */
 #include "config.h"
-#include <check.h>
 #include <stdlib.h>
 #include "../libjosec.h"
 #include <jansson.h>
 #include <assert.h>
-#include <gcrypt.h>
 #include <yacl.h>
 #include "../src/hs256.h"
 #include "soft_crypto.h"
@@ -14,6 +12,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <glib.h>
 
 #include <openssl/bio.h>
 #include <openssl/ssl.h>
@@ -36,7 +35,7 @@ init_ssl()
   SSL_load_error_strings();
   SSL_library_init();
 }
-START_TEST(t_build_key)
+static void t_build_key(void)
 {
   json_t *alg = json_string ("A256GCM");
   uint8_t t[32];
@@ -44,28 +43,28 @@ START_TEST(t_build_key)
   memset (t, 0x61, 32);
 
   json_t *jwk = jwk_build_symmetric_key (alg, t, 32);
-  ck_assert (NULL != jwk);
+  g_assert (NULL != jwk);
 
   int rc = strcmp (json_string_value (json_object_get (jwk, "kty")), "oct");
-  ck_assert (rc == 0);
+  g_assert (rc == 0);
 
   rc = strcmp (json_string_value (json_object_get (jwk, "alg")), "A256GCM");
-  ck_assert (rc == 0);
+  g_assert (rc == 0);
 
   const char* k = json_string_value (json_object_get (jwk, "k"));
-  ck_assert (NULL != k);
+  g_assert (NULL != k);
 
 
   rc = b64url_decode_helper (k, tmp, 32);
-  ck_assert (0 == rc);
+  g_assert (0 == rc);
 
   rc = memcmp (t, tmp, 32);
-  ck_assert (0 == rc);
+  g_assert (0 == rc);
 
 }
-END_TEST
 
-START_TEST(test_jwe_encrypt)
+
+static void test_jwe_encrypt(void)
 {
 
   json_t *alg = json_string ("A256KW");
@@ -80,18 +79,18 @@ START_TEST(test_jwe_encrypt)
   const char *jwe;
   int rc = jwe_encrypt (A256KW, A256GCM, p, 256, jwk, &jwe);
 
-  ck_assert_msg (0 == rc, "RC = %d", rc);
+  g_assert_cmpint(0, ==, rc);
   printf ("JWE: %s\n", jwe);
 
   uint8_t *out;
   size_t outl;
   rc = jwe_decrypt (jwk, jwe, &out, &outl);
 
-  ck_assert_msg (0 == rc, "RC: %d", rc);
+  g_assert_cmpint(0, ==, rc);
 }
-END_TEST
 
-START_TEST(test_jwe_failures)
+
+static void test_jwe_failures(void)
 {
   uint8_t *out;
   size_t outl;
@@ -108,41 +107,42 @@ START_TEST(test_jwe_failures)
   const char *jwe;
   rc = jwe_encrypt (A256KW, A256GCM, p, 256, jwk, &jwe);
 
-  ck_assert_msg (rc != 0, "%s %d\n", "RC:", rc);
+  g_assert_cmpint(0, !=, rc);
 
   rc = jwe_encrypt (A256GCM, A256KW, p, 256, jwk, &jwe);
 
-  ck_assert_msg (rc != 0, "%s %d\n", "RC:", rc);
+  g_assert_cmpint(0, !=, rc);
 
   json_t *bad_jwk = json_deep_copy (jwk);
-  ck_assert (0 == json_object_set (bad_jwk, "nope", json_string("nope")));
+  g_assert (0 == json_object_set (bad_jwk, "nope", json_string("nope")));
 
   rc = jwe_encrypt (A256KW, A256GCM, p, 256, bad_jwk, &jwe);
 
-  ck_assert_msg (rc != 0, "%s %d\n", "RC:", rc);
+  g_assert_cmpint(0, !=, rc);
 
-
+  g_assert_nonnull (jwe);
   rc = jwe_decrypt (bad_jwk, jwe, &out, &outl);
+  printf ("here\n");
 
-  ck_assert_msg (0 != rc, "RC: %d", rc);
+  g_assert_cmpint(0, !=, rc);
 
   const char *bad_jwe = "a.a.a.a.a";
 
   rc = jwe_decrypt (jwk, bad_jwe, &out, &outl);
 
-  ck_assert_msg (-1 == rc, "RC: %d", rc);
+  g_assert_cmpint(-1, ==, rc);
 
   const char *bad1 = "eyJhbGciOiAiQTI1NktXIiwgImVuYyI6ICJBMjU2R0NNIn0.a.a.a.a";
 
   rc = jwe_decrypt (jwk, bad1, &out, &outl);
 
-  ck_assert_msg (-2 == rc, "RC: %d", rc);
+  g_assert_cmpint(-2, ==, rc);
 
   const char *bad2 = "eyJhbGciOiAiQTI1NktXIiwgImVuYyI6ICJBMjU2R0NNIn0.b2NmvRU4r4oyKC7RMSDsT8TE9yYdIChlzTjgIVylUWVKu2flezaTAg.a.a.a";
 
   rc = jwe_decrypt (jwk, bad2, &out, &outl);
 
-  ck_assert_msg (-3 == rc, "RC: %d", rc);
+  g_assert_cmpint(-3, ==, rc);
 
 
   /* Bad three has a manipulted header */
@@ -154,11 +154,16 @@ START_TEST(test_jwe_failures)
 
   rc = jwe_decrypt (jwk, bad3, &out, &outl);
 
-  ck_assert_msg (-10 == rc, "RC: %d", rc);
-}
-END_TEST
+  g_assert_cmpint(-10, ==, rc);
 
-START_TEST(t_loop)
+  // Reruns this same test in a subprocess
+  g_test_trap_subprocess (NULL, 0, 0);
+  g_test_trap_assert_passed ();
+  g_test_trap_assert_stderr ("*ERROR*too large*");
+}
+
+
+static void t_loop(void)
 {
   int i;
   for (i=0; i<1000; i++)
@@ -175,56 +180,31 @@ START_TEST(t_loop)
       const char *jwe;
       int rc = jwe_encrypt (A256KW, A256GCM, p, 256, jwk, &jwe);
 
-      ck_assert_msg (0 == rc, "RC = %d", rc);
+      g_assert_cmpint(0, ==, rc);
       printf ("JWE: %s\n", jwe);
 
       uint8_t *out;
       size_t outl;
       rc = jwe_decrypt (jwk, jwe, &out, &outl);
 
-      ck_assert_msg (0 == rc, "RC: %d", rc);
+      g_assert_cmpint(0, ==, rc);
     }
 }
-END_TEST
 
-static Suite *
-jwe_suite(void)
+
+
+int
+main(int argc, char *argv[])
 {
-    Suite *s;
-    TCase *tc_core;
+    g_test_init (&argc, &argv, NULL);
 
-    s = suite_create("JWE");
-
-    /* Core test case */
-    tc_core = tcase_create("Core");
-
-
-    tcase_add_test(tc_core, t_build_key);
-    tcase_add_test(tc_core, test_jwe_encrypt);
-    tcase_add_test(tc_core, test_jwe_failures);
-    tcase_add_test(tc_core, t_loop);
-
-    suite_add_tcase(s, tc_core);
+    g_test_add_func ("/jwe/t_build_key", t_build_key);
+    g_test_add_func ("/jwe/test_jwe_encrypt", test_jwe_encrypt);
+    g_test_add_func ("/jwe/test_jwe_failures", test_jwe_failures);
+    g_test_add_func ("/jwe/t_loop", t_loop);
 
 
-    return s;
-}
-
-int main(void)
-{
-    int number_failed;
-    Suite *s;
-    SRunner *sr;
-
-    s = jwe_suite();
-    sr = srunner_create(s);
-
-    init_ssl();
-    srunner_set_fork_status (sr, CK_NOFORK);
-    srunner_run_all(sr, CK_NORMAL);
-    number_failed = srunner_ntests_failed(sr);
-    srunner_free(sr);
-    return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
+    return g_test_run ();
 }
 
 

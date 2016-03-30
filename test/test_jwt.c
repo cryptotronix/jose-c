@@ -1,10 +1,8 @@
 #include "config.h"
-#include <check.h>
 #include <stdlib.h>
 #include "../libjosec.h"
 #include <jansson.h>
 #include <assert.h>
-#include <gcrypt.h>
 #include <yacl.h>
 #include "../src/hs256.h"
 #include "soft_crypto.h"
@@ -13,6 +11,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <glib.h>
+#include <string.h>
 
 #if defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
 #pragma GCC diagnostic push
@@ -83,7 +83,7 @@ sign (const uint8_t *to_sign, size_t len,
 }
 
 
-START_TEST(test_jwt_creation)
+static void test_jwt_creation(void)
 {
 
     /* uint8_t key [32]; */
@@ -94,8 +94,8 @@ START_TEST(test_jwt_creation)
     /* struct lca_octet_buffer result; */
 
 
-    /* ck_assert_int_eq(fill_random(key, sizeof(key)), sizeof(key)); */
-    /* ck_assert_int_eq(fill_random(challenge, sizeof(challenge)), sizeof(challenge)); */
+    /* g_assert_int_eq(fill_random(key, sizeof(key)), sizeof(key)); */
+    /* g_assert_int_eq(fill_random(challenge, sizeof(challenge)), sizeof(challenge)); */
 
     /* k_buf.ptr = key; */
     /* k_buf.len = sizeof(key); */
@@ -105,19 +105,19 @@ START_TEST(test_jwt_creation)
 
     /* result = lca_soft_hmac256_defaults(c_buf, k_buf, 0); */
 
-    /* ck_assert_int_eq(result.len, 32); */
+    /* g_assert_int_eq(result.len, 32); */
 
     /* // Verify the result */
-    /* ck_assert(lca_verify_hmac_defaults(c_buf, result, k_buf, 0)); */
+    /* g_assert(lca_verify_hmac_defaults(c_buf, result, k_buf, 0)); */
 
     /* // Try to verify the key, which should fail */
-    /* ck_assert(!lca_verify_hmac_defaults(c_buf, c_buf, k_buf, 0)); */
+    /* g_assert(!lca_verify_hmac_defaults(c_buf, c_buf, k_buf, 0)); */
 
     /* // Now let's sign the hmac */
 
     /* gcry_sexp_t ecc; */
 
-    /* ck_assert(lca_gen_soft_keypair (&ecc)); */
+    /* g_assert(lca_gen_soft_keypair (&ecc)); */
 
     /* struct lca_octet_buffer signature; */
 
@@ -134,9 +134,9 @@ START_TEST(test_jwt_creation)
 
 
 }
-END_TEST
 
-START_TEST(t_signinput)
+
+static void t_signinput(void)
 {
     const char *result = "eyJhbGciOiAibm9uZSJ9.eyJzdWIiOiAiQm9iIn0";
 
@@ -150,15 +150,15 @@ START_TEST(t_signinput)
     char * jwt =
         make_signing_input (head_j, claims_j);
 
-    ck_assert (0 == strcmp (result, jwt));
+    g_assert (0 == strcmp (result, jwt));
 
 
 
 
 }
-END_TEST
 
-START_TEST(t_encode)
+
+static void t_encode(void)
 {
     int numtimes = sign_callback_called;
 
@@ -167,23 +167,23 @@ START_TEST(t_encode)
 
     char *jwt;
 
-    mark_point();
+
 
     jwt = jwt_encode_old (claims_j, ES256, sign);
 
     numtimes += 1;
 
-    ck_assert (numtimes == sign_callback_called);
-    ck_assert (NULL != jwt);
+    g_assert (numtimes == sign_callback_called);
+    g_assert (NULL != jwt);
 
     printf ("Signed JWT: %s\n", jwt);
 
 
 }
-END_TEST
 
 
-START_TEST(test_base64)
+
+static void test_base64(void)
 {
     size_t small = 10, med = 100;
     char *s, *m;
@@ -191,45 +191,45 @@ START_TEST(test_base64)
     s = malloc (small);
     m = malloc (med);
 
-    ck_assert (small == (size_t)fill_random ((uint8_t *)s, small));
-    ck_assert (med == (size_t)fill_random ((uint8_t *)m, med));
+    g_assert (small == (size_t)fill_random ((uint8_t *)s, small));
+    g_assert (med == (size_t)fill_random ((uint8_t *)m, med));
 
     char *in, *out;
     size_t in_len, out_len;
 
     in_len = base64url_encode_alloc ((const uint8_t *)m, med, &in);
 
-    ck_assert (in_len > 0);
+    g_assert (in_len > 0);
 
     printf("Encoded Base64 URL Result (%zu): %s\n", in_len, in);
 
     out_len = base64url_decode_alloc ((const uint8_t *)in, in_len, &out);
 
-    ck_assert (out_len == med);
+    g_assert (out_len == med);
 
-    ck_assert (0 == memcmp (out, m, med));
+    g_assert (0 == memcmp (out, m, med));
 
     free (in);
     free (out);
 
 }
-END_TEST
 
-START_TEST(t_encode_helper)
+
+static void t_encode_helper(void)
 {
     int med = 100;
     char *m;
 
     m = malloc (med);
 
-    ck_assert (med == fill_random ((uint8_t *)m, med));
+    g_assert (med == fill_random ((uint8_t *)m, med));
 
     char *in;
     size_t in_len;
 
     int rc = b64url_encode_helper ((const uint8_t *)m, med, (const char **)&in, &in_len);
 
-    ck_assert (0 == rc);
+    g_assert (0 == rc);
 
     printf("Encoded Base64 URL Result (%zu): %s\n", in_len, in);
 
@@ -237,17 +237,17 @@ START_TEST(t_encode_helper)
 
     rc = b64url_decode_helper (in, out, med);
 
-    ck_assert (rc == 0);
+    g_assert (rc == 0);
 
-    ck_assert (0 == memcmp (out, m, med));
+    g_assert (0 == memcmp (out, m, med));
 
     free (in);
     free (out);
 }
-END_TEST
 
 
-START_TEST(test_b64url2json)
+
+static void test_b64url2json(void)
 {
     const char * encoded = "eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWV9";
 
@@ -255,31 +255,31 @@ START_TEST(test_b64url2json)
 
 
     obj = b64url2json (encoded, strlen(encoded));
-    ck_assert (NULL != obj);
+    g_assert (NULL != obj);
 
     json_t *a = json_object_get(obj, "sub");
     json_t *b = json_object_get(obj, "name");
     json_t *c = json_object_get(obj, "admin");
 
-    ck_assert(0 == strcmp ("1234567890", json_string_value(a)));
-    ck_assert(0 == strcmp ("John Doe", json_string_value(b)));
-    ck_assert(json_is_true(c));
+    g_assert(0 == strcmp ("1234567890", json_string_value(a)));
+    g_assert(0 == strcmp ("John Doe", json_string_value(b)));
+    g_assert(json_is_true(c));
 
     //now try the reverse
     char *out;
     size_t s = json2b64url (obj, &out);
 
-    ck_assert (s > 0);
+    g_assert (s > 0);
 
     json_decref (obj);
     free (out);
 
 
 }
-END_TEST
 
 
-START_TEST(test_jwt_verify)
+
+static void test_jwt_verify(void)
 {
 
 
@@ -293,13 +293,13 @@ START_TEST(test_jwt_verify)
     if (!jwk)
         printf("%s\n", jerr.text);
 
-    ck_assert (NULL != jwk);
+    g_assert (NULL != jwk);
 
     json_t *j_x = json_object_get(jwk, "x");
     json_t *j_y = json_object_get(jwk, "y");
 
-    ck_assert (NULL != j_x);
-    ck_assert (NULL != j_y);
+    g_assert (NULL != j_x);
+    g_assert (NULL != j_y);
 
     printf ("x: %s\n", json_string_value (j_x));
 
@@ -309,8 +309,8 @@ START_TEST(test_jwt_verify)
     dot2 = memchr (dot + 1, (int)'.', strlen(encoded_jwt));
 
 
-    ck_assert (NULL != dot);
-    ck_assert (NULL != dot2);
+    g_assert (NULL != dot);
+    g_assert (NULL != dot2);
 
     // b64 decode the header
 
@@ -320,11 +320,11 @@ START_TEST(test_jwt_verify)
 
     /* printf("Header %d: %s\n", header_len , header); */
 
-    /* ck_assert(header_len > 0); */
+    /* g_assert(header_len > 0); */
 
     /* json_t *j_header = json_loadb(header, header_len, 0, &jerr); */
 
-    ck_assert (NULL != j_header);
+    g_assert (NULL != j_header);
 
     // b64 decode the claims
     size_t claims_len;
@@ -332,14 +332,14 @@ START_TEST(test_jwt_verify)
 
     printf("Claims %zu: %s\n", claims_len , claims);
 
-    ck_assert(claims_len > 0);
+    g_assert(claims_len > 0);
 
     json_t *j_claims = json_loadb(claims, claims_len, 0, &jerr);
 
     if (!j_claims)
         printf("%s\n", jerr.text);
 
-    ck_assert (NULL != j_claims);
+    g_assert (NULL != j_claims);
 
 
 
@@ -347,59 +347,59 @@ START_TEST(test_jwt_verify)
 
 
 }
-END_TEST
 
-START_TEST(t_jwk2pubkey)
+
+static void t_jwk2pubkey(void)
 {
 
     json_error_t jerr;
     json_t *jwk = json_loads(encoded_jwk, 0, &jerr);
 
-    ck_assert (NULL != jwk);
+    g_assert (NULL != jwk);
 
     uint8_t pubkey[YACL_P256_COORD_SIZE*2];
 
-    ck_assert (0 == jwk2pubkey (jwk, pubkey));
+    g_assert (0 == jwk2pubkey (jwk, pubkey));
 
 }
-END_TEST
 
-START_TEST(t_jwk2sig)
+
+static void t_jwk2sig(void)
 {
     const char *b64sig = "DtEhU3ljbEg8L38VWAfUAqOyKAM6-Xx-F4GawxaepmXFCgfTjDxw5djxLa8ISlSApmWQxfKTUJqPP3-Kg6NU1Q";
 
     uint8_t sig[YACL_P256_COORD_SIZE*2];
 
-    ck_assert (0 == jws2sig (b64sig, sig));
+    g_assert (0 == jws2sig (b64sig, sig));
 
 }
-END_TEST
 
-START_TEST(t_jwt2signinput)
+
+static void t_jwt2signinput(void)
 {
 
     uint8_t digest[YACL_P256_COORD_SIZE];
 
-    ck_assert (0 == jwt2signinput (encoded_jwt, digest));
+    g_assert (0 == jwt2signinput (encoded_jwt, digest));
 
 
 }
-END_TEST
 
-START_TEST(t_jwtverfiy)
+
+static void t_jwtverfiy(void)
 {
     json_error_t jerr;
     json_t *jwk = json_loads(encoded_jwk, 0, &jerr);
 
-    ck_assert (NULL != jwk);
+    g_assert (NULL != jwk);
 
-    ck_assert (0 == jwt_verify (jwk, encoded_jwt));
+    g_assert (0 == jwt_verify (jwk, encoded_jwt));
 
-    ck_assert (0 != jwt_verify (jwk, bad_sig_encoded_jwt));
+    g_assert (0 != jwt_verify (jwk, bad_sig_encoded_jwt));
 }
-END_TEST
 
-START_TEST(t_encode_none)
+
+static void t_encode_none(void)
 {
     const char *result = "eyJhbGciOiAibm9uZSJ9.eyJzdWIiOiAiQm9iIn0.";
 
@@ -413,13 +413,13 @@ START_TEST(t_encode_none)
 
     jwt = jwt_encode_old(claims_j, NONE, NULL);
 
-    ck_assert (NULL != jwt);
+    g_assert (NULL != jwt);
 
-    ck_assert (0 == strcmp (result, jwt));
+    g_assert (0 == strcmp (result, jwt));
 }
-END_TEST
 
-START_TEST(t_split)
+
+static void t_split(void)
 {
     const char *jwt = "eyJhbGciOiAibm9uZSJ9.eyJzdWIiOiAiQm9iIn0.";
     json_t *header, *claims;
@@ -429,17 +429,17 @@ START_TEST(t_split)
 
     printf("Split rc: %d\n", rc);
 
-    ck_assert (0 == rc);
-    ck_assert (NULL != header);
-    ck_assert (NULL != claims);
+    g_assert (0 == rc);
+    g_assert (NULL != header);
+    g_assert (NULL != claims);
 
     fprintf (stdout, "%s\n", "Dumping split jwt");
     fprintf (stdout, "%s: ", "Header");
-    ck_assert (0 == json_dumpf(header, stdout, 0));
+    g_assert (0 == json_dumpf(header, stdout, 0));
     fprintf (stdout, "\n");
 
     fprintf (stdout, "%s: ", "Claims");
-    ck_assert (0 == json_dumpf(claims, stdout, 0));
+    g_assert (0 == json_dumpf(claims, stdout, 0));
     fprintf (stdout, "\n");
 
     json_decref (header);
@@ -447,9 +447,9 @@ START_TEST(t_split)
 
 
 }
-END_TEST
 
-START_TEST(t_g2jwk)
+
+static void t_g2jwk(void)
 {
     json_t *jwk;
 
@@ -475,27 +475,27 @@ START_TEST(t_g2jwk)
     assert (NULL != jwk);
 
     fprintf (stdout, "%s: ", "JWK");
-    ck_assert (0 == json_dumpf(jwk, stdout, 0));
+    g_assert (0 == json_dumpf(jwk, stdout, 0));
     fprintf (stdout, "\n");
 
-    ck_assert_str_eq("EC", json_string_value (json_object_get (jwk, "kty")));
-    ck_assert_str_eq("P-256", json_string_value (json_object_get (jwk, "crv")));
-    ck_assert_str_eq("sig", json_string_value (json_object_get (jwk, "use")));
-    ck_assert(NULL != json_string_value (json_object_get (jwk, "x")));
-    ck_assert(NULL != json_string_value (json_object_get (jwk, "y")));
-    ck_assert(NULL != json_string_value (json_object_get (jwk, "d")));
+    g_assert_cmpstr("EC", ==, json_string_value (json_object_get (jwk, "kty")));
+    g_assert_cmpstr("P-256", ==, json_string_value (json_object_get (jwk, "crv")));
+    g_assert_cmpstr("sig", ==, json_string_value (json_object_get (jwk, "use")));
+    g_assert(NULL != json_string_value (json_object_get (jwk, "x")));
+    g_assert(NULL != json_string_value (json_object_get (jwk, "y")));
+    g_assert(NULL != json_string_value (json_object_get (jwk, "d")));
 
     jwk = jc_eckey2jwk (x, sizeof(x), y, sizeof(y),
                         NULL, sizeof(d), "P-256",
                         "sig", "1");
 
-    ck_assert(NULL == json_string_value (json_object_get (jwk, "d")));
+    g_assert(NULL == json_string_value (json_object_get (jwk, "d")));
 
 }
-END_TEST
 
 
-START_TEST(t_hs256)
+
+static void t_hs256(void)
 {
     const char *hmac_key = "secret";
 
@@ -504,18 +504,18 @@ START_TEST(t_hs256)
                      (uint8_t *)hmac_key, strlen(hmac_key),
                      NULL);
 
-    ck_assert (NULL != result);
+    g_assert (NULL != result);
     printf ("Calc: %s\n", result);
     printf ("expected: %s\n", jwt_io_hs256_full);
 
-    ck_assert (0 == strcmp (result, jwt_io_hs256_full));
+    g_assert (0 == strcmp (result, jwt_io_hs256_full));
 
     free (result);
 
 }
-END_TEST
 
-START_TEST(t_external_encode)
+
+static void t_external_encode(void)
 {
     jose_context_t ctx;
     const char *hmac_key = "secret";
@@ -525,71 +525,71 @@ START_TEST(t_external_encode)
     int rc;
 
     rc = jwt_split (jwt, &header, &claims);
-    ck_assert (0 == rc);
+    g_assert (0 == rc);
 
-    ck_assert (0 == jose_create_context (&ctx, NULL, NULL, NULL));
+    g_assert (0 == jose_create_context (&ctx, NULL, NULL, NULL));
 
-    ck_assert (ctx.cookie == NULL);
-    /* ck_assert ((void *)ctx.verify_func == (void *)jose_soft_verify); */
-    /* ck_assert ((void *)ctx.sign_func == (void *)jose_soft_sign); */
+    g_assert (ctx.cookie == NULL);
+    /* g_assert ((void *)ctx.verify_func == (void *)jose_soft_verify); */
+    /* g_assert ((void *)ctx.sign_func == (void *)jose_soft_sign); */
 
-    ck_assert (ctx.key_container[HS256].key == NULL);
+    g_assert (ctx.key_container[HS256].key == NULL);
 
     jose_key_t key;
     key.alg_type = HS256;
     key.key = (uint8_t *)hmac_key;
     key.k_len = strlen (hmac_key);
 
-    ck_assert (0 == jose_add_key (&ctx, key));
+    g_assert (0 == jose_add_key (&ctx, key));
 
     char *result = jwt_encode(&ctx, claims, HS256);
 
-    ck_assert(NULL != result);
+    g_assert(NULL != result);
 
     printf ("jwt: %s\n", result);
 
-    ck_assert (0 == jwt_verify_sig (&ctx, result, HS256));
+    g_assert (0 == jwt_verify_sig (&ctx, result, HS256));
 
     result[10] = 1;
 
-    ck_assert (0 != jwt_verify_sig (&ctx, result, HS256));
+    g_assert (0 != jwt_verify_sig (&ctx, result, HS256));
 
 
 
 }
 
-END_TEST
 
-START_TEST(t_context)
+
+static void t_context(void)
 {
     jose_context_t ctx;
     const char *hmac_key = "secret";
 
 
-    ck_assert (0 == jose_create_context (&ctx, NULL, NULL, NULL));
+    g_assert (0 == jose_create_context (&ctx, NULL, NULL, NULL));
 
-    ck_assert (ctx.cookie == NULL);
-    ck_assert (ctx.sign_func != NULL);
+    g_assert (ctx.cookie == NULL);
+    g_assert (ctx.sign_func != NULL);
 
-    ck_assert (ctx.key_container[HS256].key == NULL);
+    g_assert (ctx.key_container[HS256].key == NULL);
 
     jose_key_t key;
     key.alg_type = HS256;
     key.key = (uint8_t *)hmac_key;
     key.k_len = strlen (hmac_key);
 
-    ck_assert (0 == jose_add_key (&ctx, key));
+    g_assert (0 == jose_add_key (&ctx, key));
 
-    ck_assert ((void *)ctx.key_container[HS256].key == (void *)hmac_key);
-    ck_assert (ctx.key_container[HS256].k_len == strlen (hmac_key));
-    ck_assert (ctx.key_container[HS256].alg_type == HS256);
+    g_assert ((void *)ctx.key_container[HS256].key == (void *)hmac_key);
+    g_assert (ctx.key_container[HS256].k_len == strlen (hmac_key));
+    g_assert (ctx.key_container[HS256].alg_type == HS256);
 
 
 
 }
-END_TEST
 
-START_TEST(t_alg_none)
+
+static void t_alg_none(void)
 {
     printf ("In t_alg_none\n");
     json_t *claims_j = json_object();
@@ -597,19 +597,19 @@ START_TEST(t_alg_none)
 
     jose_context_t ctx;
 
-    ck_assert (0 == jose_create_context (&ctx, NULL, NULL, NULL));
-    ck_assert (ctx.sign_func != NULL);
-    ck_assert (ctx.verify_func != NULL);
+    g_assert (0 == jose_create_context (&ctx, NULL, NULL, NULL));
+    g_assert (ctx.sign_func != NULL);
+    g_assert (ctx.verify_func != NULL);
 
     char * jwt =
         jwt_encode(&ctx, claims_j, NONE);
 
-    ck_assert (NULL != jwt);
+    g_assert (NULL != jwt);
     printf ("JWT NONE: %s\n", jwt);
 
-    ck_assert ((void *)ctx.verify_func == (void *)jose_soft_verify);
+    g_assert ((void *)ctx.verify_func == (void *)jose_soft_verify);
 
-    ck_assert (0 == jwt_verify_sig(&ctx, jwt, NONE));
+    g_assert (0 == jwt_verify_sig(&ctx, jwt, NONE));
 
 
     json_t *h, *c;
@@ -628,9 +628,9 @@ START_TEST(t_alg_none)
 
 
 }
-END_TEST
 
-START_TEST(t_msg)
+
+static void t_msg(void)
 {
     const char *json= "{\"aud\": [\"aud\"], \"nbf\": 1430401336, \"exp\": 1430401636,"
         " \"sub\": \"sub\", \"version\": 1, \"kid\": \"none\"}";
@@ -638,22 +638,22 @@ START_TEST(t_msg)
 
     json_t *j = json_loads(json, 0, NULL);
 
-    ck_assert (j != NULL);
+    g_assert (j != NULL);
 
     jose_context_t ctx;
-    ck_assert (0 == jose_create_context (&ctx, NULL, NULL, NULL));
+    g_assert (0 == jose_create_context (&ctx, NULL, NULL, NULL));
     char *jwt = jwt_encode(&ctx, j, NONE);
 
-    ck_assert (NULL != jwt);
+    g_assert (NULL != jwt);
     printf("jwt t_msg: %s\n", jwt);
 
     json_decref (j);
     free (jwt);
 
 }
-END_TEST
 
-START_TEST(t_decode_helper)
+
+static void t_decode_helper(void)
 {
     size_t encode_len;
     uint8_t test[] = {0x01, 0x02, 0x03, 0x04};
@@ -663,45 +663,45 @@ START_TEST(t_decode_helper)
     encode_len = base64url_encode_alloc (test, sizeof(test),
                                          (char **)&out);
 
-    ck_assert (encode_len > sizeof (test));
+    g_assert (encode_len > sizeof (test));
 
     int rc = b64url_decode_helper (out, cmp, sizeof(cmp));
 
-    ck_assert (rc == 0);
-    ck_assert (0 == memcmp (cmp, test, sizeof(test)));
+    g_assert (rc == 0);
+    g_assert (0 == memcmp (cmp, test, sizeof(test)));
 
     rc = b64url_decode_helper (out, cmp, sizeof(cmp) - 1);
 
-    ck_assert (rc == sizeof(cmp));
+    g_assert (rc == sizeof(cmp));
 
 
     rc = b64url_decode_helper ((const char *)test, cmp, sizeof(cmp));
 
-    ck_assert (rc == -1);
+    g_assert (rc == -1);
 
     free (out);
 
 
 }
-END_TEST
 
-START_TEST(t_jwk2rawpub)
+
+static void t_jwk2rawpub(void)
 {
     int rc;
     uint8_t pub[YACL_P256_COORD_SIZE*2];
     json_error_t jerr;
     json_t *jwk = json_loads(encoded_jwk, 0, &jerr);
 
-    ck_assert (NULL != jwk);
+    g_assert (NULL != jwk);
     rc = jwk2rawpub (jwk, pub);
 
-    ck_assert (rc == 0);
+    g_assert (rc == 0);
 
 
 }
-END_TEST
 
-START_TEST(t_ecdsa_sign_verify)
+
+static void t_ecdsa_sign_verify(void)
 {
     int rc;
     uint8_t data [] = {0x01, 0x02, 0x03, 0x04};
@@ -710,28 +710,28 @@ START_TEST(t_ecdsa_sign_verify)
     json_t *jwk = json_loads(encoded_jwk, 0, &jerr);
     char *b64urlsig;
 
-    ck_assert (NULL != jwk);
+    g_assert (NULL != jwk);
 
     rc = jwk_ecdsa_sign (data, sizeof(data), jwk, (const char **)&b64urlsig);
 
-    ck_assert (rc == 0);
+    g_assert (rc == 0);
 
     rc = jwk_ecdsa_verify (data, sizeof(data), b64urlsig, jwk);
 
-    ck_assert (rc == 0);
+    g_assert (rc == 0);
 
     rc = jwk_ecdsa_verify (data, sizeof(data) - 1, b64urlsig, jwk);
 
-    ck_assert (rc != 0);
+    g_assert (rc != 0);
 
 }
-END_TEST
 
-START_TEST(t_create_key_pair)
+
+static void t_create_key_pair(void)
 {
     json_t *jwk = jwk_create_p256_key_pair ();
 
-    ck_assert (NULL != jwk);
+    g_assert (NULL != jwk);
 
     json_t *crv = json_object_get (jwk, "crv");
     json_t *x = json_object_get (jwk, "x");
@@ -739,11 +739,11 @@ START_TEST(t_create_key_pair)
     json_t *d = json_object_get (jwk, "d");
     json_t *kty = json_object_get (jwk, "kty");
 
-    ck_assert (0 == strcmp ("P-256", json_string_value (crv)));
-    ck_assert (NULL != x);
-    ck_assert (NULL != y);
-    ck_assert (NULL != d);
-    ck_assert (0 == strcmp ("EC", json_string_value (kty)));
+    g_assert (0 == strcmp ("P-256", json_string_value (crv)));
+    g_assert (NULL != x);
+    g_assert (NULL != y);
+    g_assert (NULL != d);
+    g_assert (0 == strcmp ("EC", json_string_value (kty)));
 
     jwk = jwk_create_es256_key_pair();
 
@@ -754,12 +754,12 @@ START_TEST(t_create_key_pair)
     kty = json_object_get (jwk, "kty");
     json_t *alg = json_object_get (jwk, "alg");
 
-    ck_assert (0 == strcmp ("P-256", json_string_value (crv)));
-    ck_assert (NULL != x);
-    ck_assert (NULL != y);
-    ck_assert (NULL != d);
-    ck_assert (0 == strcmp ("EC", json_string_value (kty)));
-    ck_assert (0 == strcmp ("ES256", json_string_value (alg)));
+    g_assert (0 == strcmp ("P-256", json_string_value (crv)));
+    g_assert (NULL != x);
+    g_assert (NULL != y);
+    g_assert (NULL != d);
+    g_assert (0 == strcmp ("EC", json_string_value (kty)));
+    g_assert (0 == strcmp ("ES256", json_string_value (alg)));
 
     /* sign verify for kicks */
 
@@ -770,18 +770,18 @@ START_TEST(t_create_key_pair)
 
     rc = jwk_ecdsa_sign (data, sizeof(data), jwk, (const char **)&b64urlsig);
 
-    ck_assert (rc == 0);
+    g_assert (rc == 0);
 
     rc = jwk_ecdsa_verify (data, sizeof(data), b64urlsig, jwk);
 
-    ck_assert (rc == 0);
+    g_assert (rc == 0);
 
 
 
 }
-END_TEST
 
-START_TEST(t_es256_encode)
+
+static void t_es256_encode(void)
 {
     jose_context_t ctx;
     const char *jwt = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWV9";
@@ -791,49 +791,49 @@ START_TEST(t_es256_encode)
 
     rc = jwt_split (jwt, &header, &claims);
 
-    ck_assert (0 == rc);
+    g_assert (0 == rc);
 
-    ck_assert (0 == jose_create_context (&ctx, NULL, NULL, NULL));
+    g_assert (0 == jose_create_context (&ctx, NULL, NULL, NULL));
 
     json_t *jwk = json_loads(encoded_jwk, 0, NULL);
 
-    ck_assert (NULL != jwk);
+    g_assert (NULL != jwk);
 
-    ck_assert (ctx.cookie == NULL);
-    ck_assert ((void *)ctx.verify_func == (void *)jose_soft_verify);
-    ck_assert ((void *)ctx.sign_func == (void *)jose_soft_sign);
+    g_assert (ctx.cookie == NULL);
+    g_assert ((void *)ctx.verify_func == (void *)jose_soft_verify);
+    g_assert ((void *)ctx.sign_func == (void *)jose_soft_sign);
 
-    ck_assert (ctx.key_container[ES256].key == NULL);
+    g_assert (ctx.key_container[ES256].key == NULL);
 
     jose_key_t key;
     key.alg_type = ES256;
     key.key = (uint8_t *)jwk;
     key.k_len = 0;
 
-    ck_assert (0 == jose_add_key (&ctx, key));
+    g_assert (0 == jose_add_key (&ctx, key));
 
     char *result = jwt_encode(&ctx, claims, ES256);
 
-    ck_assert(NULL != result);
+    g_assert(NULL != result);
 
     printf ("jwt es256: %s\n", result);
 
-    ck_assert (0 == jwt_verify_sig (&ctx, result, ES256));
+    g_assert (0 == jwt_verify_sig (&ctx, result, ES256));
 
     result[10] = 1;
 
-    ck_assert (0 != jwt_verify_sig (&ctx, result, ES256));
+    g_assert (0 != jwt_verify_sig (&ctx, result, ES256));
 
 }
-END_TEST
 
-START_TEST(t_ecdh)
+
+static void t_ecdh(void)
 {
     json_t *alice = jwk_create_p256_key_pair ();
     json_t *bob = jwk_create_p256_key_pair ();
 
-    ck_assert (NULL != alice);
-    ck_assert (NULL != bob);
+    g_assert (NULL != alice);
+    g_assert (NULL != bob);
 
     int rc;
 
@@ -844,26 +844,26 @@ START_TEST(t_ecdh)
 
     rc = jwa_ecdh (alice, bob, &alice_secret, &as_len);
 
-    ck_assert (rc == 0);
-    ck_assert (as_len == 32);
-    ck_assert (NULL != alice_secret);
+    g_assert (rc == 0);
+    g_assert (as_len == 32);
+    g_assert (NULL != alice_secret);
 
     rc = jwa_ecdh (bob, alice, &bob_secret, &bob_len);
 
-    ck_assert (rc == 0);
-    ck_assert (bob_len == 32);
-    ck_assert (NULL != bob_secret);
+    g_assert (rc == 0);
+    g_assert (bob_len == 32);
+    g_assert (NULL != bob_secret);
 
     rc = memcmp (alice_secret, bob_secret, as_len);
 
-    ck_assert (0 == rc);
+    g_assert (0 == rc);
 
 
 
 }
-END_TEST
 
-START_TEST(t_regexp)
+
+static void t_regexp(void)
 {
 #define NUM_REG_TESTS 3
 
@@ -873,27 +873,27 @@ START_TEST(t_regexp)
     const char *jwt4 = "abcd-.def8gt_.";
     const char *jwt5 = "abcd-.def8gt_.=";
 
-    mark_point();
-    int rc = jwt_check_allowed_char (jwt1, strlen(jwt1));
-    ck_assert_msg (0 == rc, "%s%d\n", "rc: ", rc);
 
-    mark_point();
+    int rc = jwt_check_allowed_char (jwt1, strlen(jwt1));
+    g_assert_cmpint (rc, ==, 0);
+
+
     rc = jwt_check_allowed_char (jwt2, strlen(jwt2));
-    ck_assert (0 == rc);
+    g_assert (0 == rc);
 
     rc = jwt_check_allowed_char (jwt3, strlen(jwt3));
-    ck_assert (0 == rc);
+    g_assert (0 == rc);
 
     rc = jwt_check_allowed_char (jwt4, strlen(jwt4));
-    ck_assert (0 == rc);
+    g_assert (0 == rc);
 
     rc = jwt_check_allowed_char (jwt5, strlen(jwt5));
-    ck_assert (0 != rc);
+    g_assert (0 != rc);
 
 }
-END_TEST
 
-START_TEST(t_discerptor)
+
+static void t_discerptor(void)
 {
     const char *jwt1 = "aaa.bbb.ccc";
 
@@ -901,78 +901,56 @@ START_TEST(t_discerptor)
 
     int rc = jwt_discerptor (jwt1, &dots, 2);
 
-    ck_assert (rc == 0);
+    g_assert (rc == 0);
 
-    ck_assert ((void *)dots[0] == (void *)&jwt1[3]);
-    ck_assert ((void *)dots[1] == (void *)&jwt1[7]);
+    g_assert ((void *)dots[0] == (void *)&jwt1[3]);
+    g_assert ((void *)dots[1] == (void *)&jwt1[7]);
 
-    ck_assert (3 == dots[0] - &jwt1[0]);
+    g_assert (3 == dots[0] - &jwt1[0]);
     rc = jwt_discerptor(jwt1, dots, 1);
-    ck_assert (rc == -1);
+    g_assert (rc == -1);
 
 
     rc = jwt_discerptor(jwt1, dots, 3);
-    ck_assert (rc == -2);
+    g_assert (rc == -2);
 
 }
-END_TEST
 
-Suite * jwt_suite(void)
+
+
+int
+main(int argc, char *argv[])
 {
-    Suite *s;
-    TCase *tc_core;
+    g_test_init (&argc, &argv, NULL);
 
-    s = suite_create("JWT");
-
-    /* Core test case */
-    tc_core = tcase_create("Core");
-
-    tcase_add_test(tc_core, test_jwt_creation);
-    tcase_add_test(tc_core, test_base64);
-    tcase_add_test(tc_core, test_b64url2json);
-    tcase_add_test(tc_core, t_jwk2pubkey);
-    tcase_add_test(tc_core, t_jwk2sig);
-    tcase_add_test(tc_core, t_jwt2signinput);
-    tcase_add_test(tc_core, t_jwtverfiy);
-    tcase_add_test(tc_core, t_signinput);
-    //tcase_add_test(tc_core, t_encode_none);
-    tcase_add_test(tc_core, t_split);
-    tcase_add_test(tc_core, t_encode);
-    tcase_add_test(tc_core, t_g2jwk);
-    tcase_add_test(tc_core, t_hs256);
-    tcase_add_test(tc_core, t_context);
-    tcase_add_test(tc_core, t_external_encode);
-    tcase_add_test(tc_core, t_alg_none);
-    tcase_add_test(tc_core, t_msg);
-    tcase_add_test(tc_core, t_decode_helper);
-    tcase_add_test(tc_core, t_jwk2rawpub);
-    tcase_add_test(tc_core, t_ecdsa_sign_verify);
-    tcase_add_test(tc_core, t_create_key_pair);
-    tcase_add_test(tc_core, t_encode_helper);
-    //tcase_add_test(tc_core, test_jwt_verify);
-    tcase_add_test(tc_core, t_es256_encode);
-    tcase_add_test(tc_core, t_ecdh);
-    tcase_add_test(tc_core, t_regexp);
-    tcase_add_test(tc_core, t_discerptor);
-    suite_add_tcase(s, tc_core);
+    g_test_add_func ("/jwt/test_jwt_creation", test_jwt_creation);
+    g_test_add_func ("/jwt/test_base64", test_base64);
+    g_test_add_func ("/jwt/test_b64url2json", test_b64url2json);
+    g_test_add_func ("/jwt/t_jwk2pubkey", t_jwk2pubkey);
+    g_test_add_func ("/jwt/t_jwk2sig", t_jwk2sig);
+    g_test_add_func ("/jwt/t_jwt2signinput", t_jwt2signinput);
+    g_test_add_func ("/jwt/t_jwtverfiy", t_jwtverfiy);
+    g_test_add_func ("/jwt/t_signinput", t_signinput);
+    g_test_add_func ("/jwt/t_split", t_split);
+    g_test_add_func ("/jwt/t_encode", t_encode);
+    g_test_add_func ("/jwt/t_g2jwk", t_g2jwk);
+    g_test_add_func ("/jwt/t_hs256", t_hs256);
+    g_test_add_func ("/jwt/t_context", t_context);
+    g_test_add_func ("/jwt/t_external_encode", t_external_encode);
+    g_test_add_func ("/jwt/t_alg_none", t_alg_none);
+    g_test_add_func ("/jwt/t_msg", t_msg);
+    g_test_add_func ("/jwt/t_decode_helper", t_decode_helper);
+    g_test_add_func ("/jwt/t_jwk2rawpub", t_jwk2rawpub);
+    g_test_add_func ("/jwt/t_ecdsa_sign_verify", t_ecdsa_sign_verify);
+    g_test_add_func ("/jwt/t_create_key_pair", t_create_key_pair);
+    g_test_add_func ("/jwt/t_encode_helper", t_encode_helper);
+    g_test_add_func ("/jwt/t_es256_encode", t_es256_encode);
+    g_test_add_func ("/jwt/t_ecdh", t_ecdh);
+    g_test_add_func ("/jwt/t_regexp", t_regexp);
+    g_test_add_func ("/jwt/t_discerptor", t_discerptor);
 
 
-    return s;
-}
-
-int main(void)
-{
-    int number_failed;
-    Suite *s;
-    SRunner *sr;
-
-    s = jwt_suite();
-    sr = srunner_create(s);
-
-    srunner_run_all(sr, CK_NORMAL);
-    number_failed = srunner_ntests_failed(sr);
-    srunner_free(sr);
-    return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
+    return g_test_run ();
 }
 
 
