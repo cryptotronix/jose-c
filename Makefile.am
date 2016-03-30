@@ -30,6 +30,11 @@ libjosec_la_LIBADD = $(CRYPTO_LIBS) $(OPENSSL_LIBS) \
                      $(YACL_LIBS) $(JANSSON_LIBS) \
                      lib/libgnu.la $(LIBGCRYPT_LIBS)
 
+if HAVE_GUILE
+libjosec_la_CPPFLAGS += $(GUILE_CFLAGS)
+libjosec_la_LIBADD += $(GUILE_LIBS)
+endif
+
 if BUILD_TOOLS
 bin_PROGRAMS = jwt-decode
 jwt_decode_SOURCES = src/tools/jwt_decode.c
@@ -55,6 +60,11 @@ libjosec_la_SOURCES =	src/jwt.c \
                         src/soft_crypto.h \
                         src/jwa.c \
                         src/jwe.c
+
+if HAVE_GUILE
+libjosec_la_SOURCES += src/guile/extension.c \
+                       src/guile/extension.h
+endif
 
 libjosec_la_LDFLAGS = -version-info $(JOSEC_SO_VERSION) -release $(JOSEC_API_VERSION)
 

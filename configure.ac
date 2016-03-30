@@ -60,11 +60,23 @@ AS_HELP_STRING([--enable-tools], [Build binary helper tools]))
 
 AM_CONDITIONAL([BUILD_TOOLS], [test "x$enable_tools" = "xyes"])
 
+AC_ARG_WITH([guile],
+AS_HELP_STRING([--with-guile], [Build the guile extensions]))
+AM_CONDITIONAL([HAVE_GUILE], [test "x$with_guile" = "xyes"])
+
+AS_IF([test "x$with_guile" = "xyes"], [
+# Guile Extensions
+PKG_CHECK_MODULES([GUILE], [guile-2.0])
+GUILE_PROGS
+GUILE_FLAGS
+GUILE_SITE_DIR
+])
+
 # Define these substitions here to keep all version information in one place.
 # For information on how to properly maintain the library version information,
 # refer to the libtool manual, section "Updating library version information":
 # http://www.gnu.org/software/libtool/manual/html_node/Updating-version-info.html
-AC_SUBST([JOSEC_SO_VERSION], [8:0:0])
+AC_SUBST([JOSEC_SO_VERSION], [9:0:1])
 AC_SUBST([JOSEC_API_VERSION], [0.11])
 
 # Override the template file name of the generated .pc file, so that there
@@ -76,11 +88,12 @@ AC_OUTPUT
 
 echo "
      $PACKAGE_NAME version $PACKAGE_VERSION
-     Prefix.........: $prefix
-     Debug Build....: $debug
-     C Compiler.....: $CC $CFLAGS $CPPFLAGS
-     C++ Compiler...: $CXX $CXXFLAGS $CPPFLAGS
-     Linker.........: $LD $LDFLAGS $LIBS
-     Using OpenSSL..: $with_openssl
-     Build Tools....: $enable_tools
+     Prefix...........: $prefix
+     Debug Build......: $debug
+     C Compiler.......: $CC $CFLAGS $CPPFLAGS
+     C++ Compiler.....: $CXX $CXXFLAGS $CPPFLAGS
+     Linker...........: $LD $LDFLAGS $LIBS
+     Using OpenSSL....: $with_openssl
+     Build Tools......: $enable_tools
+     Guile extensions.: $with_guile
 "

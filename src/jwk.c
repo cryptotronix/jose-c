@@ -113,6 +113,82 @@ OUT:
 }
 
 json_t *
+build_rsa_pub_jwk (const char *e, const char *n,
+                   const char *kid, const char *use)
+{
+    assert (NULL != e);
+    assert (NULL != n);
+
+    json_t *jwk = json_object();
+
+    if (!jwk)
+        return NULL;
+
+    if (json_object_set_new(jwk, "kty", json_string("RSA")))
+    {
+        goto FAIL;
+    }
+    if (json_object_set_new(jwk, "n", json_string(n)))
+    {
+        goto FAIL;
+    }
+    if (json_object_set_new(jwk, "e", json_string(e)))
+    {
+        goto FAIL;
+    }
+    if (use)
+    {
+        if (json_object_set_new(jwk, "use", json_string(use)))
+        {
+            goto FAIL;
+        }
+    }
+    if (kid)
+    {
+        if (json_object_set_new(jwk, "kid", json_string(kid)))
+        {
+            goto FAIL;
+        }
+    }
+
+    goto OUT;
+
+FAIL:
+    json_decref (jwk);
+    jwk = NULL;
+OUT:
+    return jwk;
+}
+
+json_t *
+jwk_rsapubkey2jwk (const uint8_t *n, size_t n_len,
+                   const uint8_t *e, size_t e_len,
+                   const char *kid, const char *use)
+{
+    char *n_b64, *e_b64;
+    size_t n_b64_len, e_b64_len;
+    json_t *jwk = NULL;
+
+    if (0 == (n_b64_len = base64url_encode_alloc (n, n_len, &n_b64)))
+        goto FREE_N;
+
+    if (0 == (e_b64_len = base64url_encode_alloc (e, e_len, &e_b64)))
+        goto FREE_E;
+
+    jwk = build_rsa_pub_jwk (e_b64, n_b64, kid, use);
+
+FREE_N:
+    free (n_b64);
+FREE_E:
+    free (e_b64);
+OUT:
+    return jwk;
+
+}
+
+
+
+json_t *
 jc_eckey2jwk (const uint8_t *x, size_t xlen, const uint8_t *y, size_t ylen,
               const uint8_t *d, size_t dlen, const char *curve,
               const char *use, const char* kid)

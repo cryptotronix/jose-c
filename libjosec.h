@@ -31,6 +31,7 @@ typedef enum
     INVALID,
     ES256,
     HS256,
+    RS256,
     NONE,
     JWA_MAX,
     A256KW,
@@ -120,6 +121,11 @@ jwk_build_symmetric_key (json_t *alg_str, const uint8_t *key, size_t l);
 
 json_t *
 jwk_pubkey2jwk (uint8_t *q, size_t q_len, const char *kid);
+
+json_t *
+jwk_rsapubkey2jwk (const uint8_t *n, size_t n_len,
+                   const uint8_t *e, size_t e_len,
+                   const char *kid, const char *use);
 
 /* ------------- JWE ---------------------*/
 
