@@ -8,9 +8,7 @@
 #include "soft_crypto.h"
 #include "../src/jwk.h"
 #include "base64url.h"
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
+#include <glib.h>
 
 #if defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
 #pragma GCC diagnostic push
@@ -40,27 +38,13 @@ const char *section_4_4_3_jwt =
 static int
 fill_random(uint8_t *ptr, const size_t len)
 {
-    int rc = -1;
-    int fd = open("/dev/urandom", O_RDONLY);
-    size_t num = 0;
 
-    if (fd < 0)
-        return rc;
-
-    while (num < len)
+    for (size_t i=0; i<len; i++)
     {
-        rc = read(fd, ptr + num, 1);
-        if (rc < 0)
-        {
-            return rc;
-        }
-        else
-        {
-            num += rc;
-        }
+        guint32 num = g_random_int ();
+        uint8_t *p =(uint8_t *)&num;
+        ptr[i] = p[0];
     }
-
-    close (fd);
 
     return len;
 }
@@ -84,69 +68,43 @@ sign (const uint8_t *to_sign, size_t len,
 }
 
 
-START_TEST(t_section_4_4_3)
+static void t_section_4_4_3(void)
 {
     json_error_t jerr;
     int rc = -1;
     json_t *jwk = json_loads(hmac_key, 0, &jerr);
     uint8_t raw_key[32];
 
-    ck_assert (NULL != jwk);
+    g_assert (NULL != jwk);
 
     jose_context_t ctx = {0};
-    ck_assert (0 == jose_create_context (&ctx, NULL, NULL, NULL));
+    g_assert (0 == jose_create_context (&ctx, NULL, NULL, NULL));
 
     rc = b64url_decode_helper (json_string_value (json_object_get (jwk, "k")),
                                raw_key, 32);
-    ck_assert (0 == rc);
+    g_assert (0 == rc);
 
     jose_key_t key;
     key.alg_type = HS256;
     key.key = raw_key;
     key.k_len = 32;
 
-    ck_assert (0 == jose_add_key (&ctx, key));
+    g_assert (0 == jose_add_key (&ctx, key));
 
-    ck_assert (0 == jwt_verify_sig (&ctx, section_4_4_3_jwt, HS256));
+    g_assert (0 == jwt_verify_sig (&ctx, section_4_4_3_jwt, HS256));
 
 }
-END_TEST
 
-
-
-static Suite *
-rfc7520_suite(void)
+int
+main(int argc, char *argv[])
 {
-    Suite *s;
-    TCase *tc_core;
+    g_test_init (&argc, &argv, NULL);
 
-    s = suite_create("RFC 7520");
+    g_test_add_func ("/rfc7520/t_section_4_4_3", t_section_4_4_3);
 
-    /* Core test case */
-    tc_core = tcase_create("Core");
-
-    tcase_add_test(tc_core, t_section_4_4_3);
-
-    suite_add_tcase(s, tc_core);
-
-
-    return s;
+    return g_test_run ();
 }
 
-int main(void)
-{
-    int number_failed;
-    Suite *s;
-    SRunner *sr;
-
-    s = rfc7520_suite();
-    sr = srunner_create(s);
-
-    srunner_run_all(sr, CK_NORMAL);
-    number_failed = srunner_ntests_failed(sr);
-    srunner_free(sr);
-    return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
-}
 
 
 #if defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
