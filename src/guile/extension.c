@@ -1,6 +1,5 @@
 /* -*- mode: c; c-file-style: "gnu" -*- */
 #include "config.h"
- #include <libguile.h>
 #include <assert.h>
 #include <errno.h>
 #include <string.h>

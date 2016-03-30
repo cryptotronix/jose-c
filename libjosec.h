@@ -139,6 +139,12 @@ int
 jwe_decrypt (const json_t *kek, const char *jwe, uint8_t **data, size_t *len);
 
 /* ------------- Utilities ---------------------*/
+char *
+b64url_encode (const uint8_t *to_enc, size_t inlen);
+
+uint8_t *
+b64url_decode (const char *text, size_t *out_len);
+
 int
 b64url_decode_helper (const char *to_dec, uint8_t *decoded, size_t len);
 

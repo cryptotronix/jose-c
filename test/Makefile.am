@@ -20,7 +20,7 @@ TESTS_ENVIRONMENT = $(VALGRIND)
 CFLAGS_TO_ADD = $(YACL_CFLAGS) $(JANSSON_CFLAGS) -I$(top_srcdir)/lib \
                 -I$(top_builddir)/lib -I$(top_srcdir)/src $(LIBGCRYPT_CFLAGS)
 LIBS_TO_ADD = ../libjosec.la $(LIBGLIB_LIBS) $(JANSSON_LIBS) \
-              $(top_srcdir)/lib/libgnu.la $(YACL_LIBS) $(LIBGCRYPT_LIBS)
+              $(YACL_LIBS) $(LIBGCRYPT_LIBS)
 
 
 check_PROGRAMS = check_libjosec leak check_jwe check_jwk check_rfc7520 util

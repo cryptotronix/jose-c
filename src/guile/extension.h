@@ -2,7 +2,6 @@
 #ifndef YACL_GUILE_EXT_H_
 #define YACL_GUILE_EXT_H_
 
-
 #include <libguile.h>
 
 SCM

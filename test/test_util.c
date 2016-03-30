@@ -18,8 +18,45 @@
 #pragma GCC diagnostic ignored "-Woverride-init"
 #pragma GCC diagnostic ignored "-Wcast-qual"
 
+static int
+fill_random(uint8_t *ptr, const size_t len)
+{
+
+  for (size_t i=0; i<len; i++)
+    {
+      guint32 num = g_random_int ();
+      uint8_t *p =(uint8_t *)&num;
+      ptr[i] = p[0];
+    }
+
+  return len;
+}
+
+static void test_b64url(void)
+{
+  uint8_t bin[32] = {};
+
+  printf ("about to fill\n");
+
+  fill_random (bin, 32);
+
+  printf ("about to encoded\n");
+  const char *encoded = b64url_encode (bin, 32);
+
+  g_assert_nonnull (encoded);
+
+  printf ("Encoded: %s\n", encoded);
+
+  size_t outl;
+  uint8_t *bin_out = b64url_decode (encoded, &outl);
+
+  g_assert_nonnull (bin_out);
+  g_assert (outl == 32);
 
 
+
+
+}
 static void test_trim(void)
 {
   char *sample_strings[] =
@@ -76,6 +113,7 @@ main(int argc, char *argv[])
   g_test_init (&argc, &argv, NULL);
 
   g_test_add_func ("/util/test_trim", test_trim);
+  g_test_add_func ("/util/b64url", test_b64url);
 
   return g_test_run ();
 }

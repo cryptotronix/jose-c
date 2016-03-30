@@ -1,9 +1,7 @@
 #ifndef JOSECJWK_H_
 #define JOSECJWK_H_
 
-#include "config.h"
 #include <stdint.h>
-#include <unistd.h>
 #include <jansson.h>
 #include <yacl.h>
 

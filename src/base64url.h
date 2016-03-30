@@ -1,10 +1,8 @@
 #ifndef b64_h
 #define b64_h
 
-#include "config.h"
 #include <stddef.h>
 #include <stdint.h>
-#include <base64.h>
 #include <stdlib.h>
 
 // length of data resulting from encoding/decoding

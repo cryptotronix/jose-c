@@ -6,7 +6,6 @@
 #include <string.h>
 #include "jwk.h"
 #include "base64url.h"
-#include <yacl.h>
 #include "../libjosec.h"
 #include "jws.h"
 

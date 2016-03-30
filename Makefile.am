@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with libjosec.  If not, see <http://www.gnu.org/licenses/>.
 
-SUBDIRS = lib . test
+SUBDIRS = . test
 AUTOMAKE_OPTIONS = subdir-objects
 
 AM_CFLAGS = -DDATA_DIR=\"$(pkgdatadir)\"
@@ -24,27 +24,23 @@ ACLOCAL_AMFLAGS = ${ACLOCAL_FLAGS} -I m4
 
 libjosec_la_CPPFLAGS = $(CRYPTO_CFLAGS) $(OPENSSL_CFLAGS) \
                        $(YACL_CFLAGS) $(JANSSON_CFLAGS) \
-		       -I$(top_srcdir)/lib $(LIBGCRYPT_CFLAGS)
+                       -I$(top_srcdir)/lib $(LIBGLIB_CFLAGS)
 
 libjosec_la_LIBADD = $(CRYPTO_LIBS) $(OPENSSL_LIBS) \
                      $(YACL_LIBS) $(JANSSON_LIBS) \
-                     lib/libgnu.la $(LIBGCRYPT_LIBS)
+                     $(LIBGLIB_LIBS)
 
 if HAVE_GUILE
 libjosec_la_CPPFLAGS += $(GUILE_CFLAGS)
 libjosec_la_LIBADD += $(GUILE_LIBS)
 endif
 
-if HAVE_GLIB
-libjosec_la_CPPFLAGS += $(LIBGLIB_CFLAGS)
-libjosec_la_LIBADD += $(LIBGLIB_LIBS)
-endif
 
 if BUILD_TOOLS
 bin_PROGRAMS = jwt-decode
 jwt_decode_SOURCES = src/tools/jwt_decode.c
 jwt_decode_CFLAGS = $(JANSSON_CFLAGS) -I$(top_srcdir)/lib
-jwt_decode_LDADD = libjosec.la $(JANSSON_LIBS) lib/libgnu.la
+jwt_decode_LDADD = libjosec.la $(JANSSON_LIBS)
 endif
 
 lib_LTLIBRARIES = libjosec.la
