@@ -59,7 +59,9 @@ libjosec_la_SOURCES =	src/jwt.c \
                         src/jwt.h \
                         src/soft_crypto.h \
                         src/jwa.c \
-                        src/jwe.c
+                        src/jwe.c \
+                        src/util.c \
+                        src/util.h
 
 if HAVE_GUILE
 libjosec_la_SOURCES += src/guile/extension.c \

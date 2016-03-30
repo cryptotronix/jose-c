@@ -17,7 +17,7 @@
 #include <errno.h>      /* Declares errno and defines error constants */
 #include <jansson.h>
 #include <libjosec.h>
-#include "trim.h"
+#include "../util.h"
 
 #define TC_NUM_ARGS 0
 

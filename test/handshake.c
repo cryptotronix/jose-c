@@ -6,7 +6,7 @@
 #include "../libjosec.h"
 #include <assert.h>
 //#include <gcrypt.h>
-#include "trim.h"
+#include "../src/util.h"
 
 
 char *a = "http://54.69.3.27:8081/putMicroPodPublicKey?jwt=eyJhbGciOiJFUzI1NiJ9.eyJjaGlwaWQyIjoiMSIsImNoaXBpZDEiOiIzIiwic3ViIjoicG1Xa1dTQkNMNTFCZmtobjc5eFB1S0JLSHpfX0g2Qi1tWTZHOV9laWV1TSIsImNoaXBpZDMiOiIyIiwiYXVkIjoiZG0iLCJwdWJrZXkiOnsiYWxnIjoiRVMyNTYiLCJjcnYiOiJQLTI1NiIsImt0eSI6IkVDIiwidXNlIjoic2lnIiwieSI6ImtfNVFHclRMRGdEaE5RYkxORVZCVWNEWkFFM0V0akdvX2hiclRITUREd2MiLCJ4IjoibTd0Rl90X2s0RlBNNGRKdTIyNExBdFRGUEhibmJqVUxmbWFOTHQ4WXRLZyIsImtpZCI6IjE0Mjc4NTY0NjI2NzkifX0.I9r7ZbzMf70Xy4s0kQPg6ONSrdmRA6-7pW8sLD5xYMKVoqy27hqpJgco8dfJhGNytGKhizXCoe_aK40IcSD-uQ";
