@@ -78,3 +78,5 @@ pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = josec.pc
 
 dist_noinst_SCRIPTS = autogen.sh install-sh
+
+EXTRA_DIST =  rpm/josec.spec
