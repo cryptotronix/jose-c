@@ -1,8 +1,9 @@
+#include "config.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <jansson.h>
 #include <assert.h>
-#include "string.h"
+#include <string.h>
 #include "jwt.h"
 #include "base64url.h"
 #include "jws.h"
@@ -86,7 +87,7 @@ jwt_encode(jose_context_t *ctx, const json_t *claims, jwa_t alg)
         size_t sig_len;
         int rc;
         rc = ctx->sign_func ((uint8_t *)signing_input, strlen(signing_input),
-                             alg, ctx,
+                             alg, (const jct *)ctx,
                              &sig, &sig_len);
         if (rc)
         {
@@ -402,7 +403,7 @@ jwt_verify_sig(jose_context_t *ctx, const char *jwt, jwa_t alg)
     assert (jwt);
     assert (ctx->verify_func);
 
-    return ctx->verify_func (jwt, alg, ctx);
+    return ctx->verify_func (jwt, alg, (const jct *)ctx);
 
 }
 

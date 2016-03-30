@@ -6,6 +6,7 @@
 #include <syslog.h>
 #include <yacl.h>
 #include <string.h>
+#include "jwk.h"
 
 int
 jose_soft_sign(const uint8_t *signing_input, size_t si_len,
@@ -22,7 +23,7 @@ jose_soft_sign(const uint8_t *signing_input, size_t si_len,
       size_t k_len;
 
       assert (ctx->key_container[HS256].key);
-      key = ctx->key_container[HS256].key;
+      key = (uint8_t *)ctx->key_container[HS256].key;
       k_len = ctx->key_container[HS256].k_len;
 
       uint8_t *mac = hs256_soft_hmac((const char *)signing_input,
@@ -76,7 +77,7 @@ jose_soft_verify(const char *jwt, jwa_t alg, jose_context_t *ctx)
       size_t k_len;
 
       assert (ctx->key_container[HS256].key);
-      key = ctx->key_container[HS256].key;
+      key = (uint8_t *)ctx->key_container[HS256].key;
       k_len = ctx->key_container[HS256].k_len;
 
       rc = hs256_soft_verify (jwt, key, k_len);

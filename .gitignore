@@ -92,3 +92,6 @@
 /josec.pc
 /test/leak
 /test/*.trs
+/test/check_jwe
+/test/check_jwk
+/test/check_rfc7520

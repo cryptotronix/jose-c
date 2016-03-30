@@ -8,6 +8,7 @@
 #include "base64url.h"
 #include "../libjosec.h"
 #include "jwk.h"
+#include "jwt.h"
 #include <regex.h>
 
 #ifndef JOSEC_HAVE_OPENSSL

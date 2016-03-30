@@ -34,4 +34,6 @@ make_signing_input (const json_t* header, const json_t* claims);
 int
 jwt_split (const char *jwt, json_t **header, json_t **claims);
 
+int
+jwt_discerptor (const char *jwt, const char **dots, int num_dots);
 #endif // LIBJOSECJWT_H_

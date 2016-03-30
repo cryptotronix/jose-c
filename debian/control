@@ -1,0 +1,30 @@
+Source: libjosec
+Priority: optional
+Maintainer: Joshua Brian Datko <jbd@cryptotronix.com>
+Build-Depends: debhelper (>= 9),
+               autotools-dev,
+               libglib2.0-dev,
+               pkg-config,
+               guile-2.0-dev,
+               libjansson-dev,
+               yacl-dev,
+               libssl-dev
+Standards-Version: 3.9.6
+Section: libs
+Homepage: https://www.github.com/cryptotronix/jose-c
+#Vcs-Git: git://anonscm.debian.org/collab-maint/josec.git
+#Vcs-Browser: https://anonscm.debian.org/gitweb/?p=collab-maint/josec.git;a=summary
+
+Package: libjosec-dev
+Section: libdevel
+Architecture: any
+Depends: josec1 (= ${binary:Version}), ${misc:Depends}
+Description: JOSE/JWT/JWK/JWE Library
+ Library for JOSE standards (JWT/JWK/JWE etc...)
+
+Package: libjosec1
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: JOSE/JWT/JWK/JWE Library
+ Library for JOSE standards (JWT/JWK/JWE etc...)
+

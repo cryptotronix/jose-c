@@ -1,0 +1,12 @@
+libjosec (0.15.2-0ubuntu0) wily; urgency=medium
+
+  * Fixes small issues found by launchpad
+
+ -- Joshua Brian Datko <jbd@cryptotronix.com>  Wed, 30 Mar 2016 15:37:29 -0600
+
+libjosec (0.15.1-0ubuntu0) wily; urgency=low
+
+  * Initial Release
+
+ -- Joshua Brian Datko <jbd@cryptotronix.com>  Tue, 29 Mar 2016 09:41:28 -0700
+

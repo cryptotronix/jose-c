@@ -35,6 +35,7 @@ init_ssl()
   SSL_load_error_strings();
   SSL_library_init();
 }
+
 static void t_build_key(void)
 {
   json_t *alg = json_string ("A256GCM");
@@ -205,6 +206,8 @@ static void t_loop(void)
 int
 main(int argc, char *argv[])
 {
+
+  init_ssl();
     g_test_init (&argc, &argv, NULL);
 
     g_test_add_func ("/jwe/t_build_key", t_build_key);

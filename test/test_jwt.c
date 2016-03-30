@@ -607,7 +607,7 @@ static void t_alg_none(void)
     g_assert (NULL != jwt);
     printf ("JWT NONE: %s\n", jwt);
 
-    g_assert ((void *)ctx.verify_func == (void *)jose_soft_verify);
+    //g_assert ((void *)ctx.verify_func == (void *)jose_soft_verify);
 
     g_assert (0 == jwt_verify_sig(&ctx, jwt, NONE));
 
@@ -800,8 +800,8 @@ static void t_es256_encode(void)
     g_assert (NULL != jwk);
 
     g_assert (ctx.cookie == NULL);
-    g_assert ((void *)ctx.verify_func == (void *)jose_soft_verify);
-    g_assert ((void *)ctx.sign_func == (void *)jose_soft_sign);
+    //g_assert ((void *)ctx.verify_func == (void *)jose_soft_verify);
+    //g_assert ((void *)ctx.sign_func == (void *)jose_soft_sign);
 
     g_assert (ctx.key_container[ES256].key == NULL);
 
