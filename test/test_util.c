@@ -21,8 +21,8 @@
 static int
 fill_random(uint8_t *ptr, const size_t len)
 {
-
-  for (size_t i=0; i<len; i++)
+  size_t i;
+  for (i=0; i<len; i++)
     {
       guint32 num = g_random_int ();
       uint8_t *p =(uint8_t *)&num;

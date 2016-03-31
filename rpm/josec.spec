@@ -41,7 +41,7 @@ This package contains static libraries to develop applications that use josec.
 %setup -n %{packagebase}
 
 %build
-%configure --with-guile --with-openssl
+%configure --with-guile --with-openssl --with-glib
 
 make %{?_smp_mflags}
 
@@ -54,12 +54,12 @@ make install-strip DESTDIR=%{buildroot}
 
 
 %post
--p /sbin/ldconfig
+/sbin/ldconfig
 
 %preun
 
 %postun
--p /sbin/ldconfig
+/sbin/ldconfig
 
 %posttrans
 
@@ -70,7 +70,7 @@ make install-strip DESTDIR=%{buildroot}
 %defattr( -, root, root )
 #%define _prefix /
 /usr/lib64/pkgconfig/josec.pc
-/usr/include/josec-0.3/*
+/usr/include/josec-0.11/*
 /usr/lib64/*.so
 /usr/lib64/*.so.*
 
