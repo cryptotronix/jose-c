@@ -499,7 +499,7 @@ jwk_build_symmetric_key (json_t *alg_str, const uint8_t *key, size_t l)
 
     assert (0 == b64url_encode_helper (key, l, &out, &outlen));
 
-    assert (0 == json_object_set_new (jwk, "k", json_stringn (out, outlen)));
+    assert (0 == json_object_set_new (jwk, "k", json_string (out)));
     assert (0 == json_object_set_new (jwk, "kty", json_string ("oct")));
 
     free ((void *)out);

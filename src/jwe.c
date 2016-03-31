@@ -287,7 +287,7 @@ bytes2b64urljsonstr (const uint8_t *data, size_t len, json_t **out)
 
   if (rc) goto OUT;
 
-  *out = json_stringn (str, outlen);
+  *out = json_string (str);
   rc = 0;
  OUT:
   free ((void *) str);
@@ -434,7 +434,7 @@ build_jwe (json_t *hdr, json_t *cek, json_t *iv,
   assert (ciphertext);
   assert (tag);
 
-  size_t l = json_string_length (hdr);
+  size_t l = strlen (json_string_value (hdr));
   size_t tot = l + 2;
   char *tmp = malloc (tot);
   memset (tmp, 0, tot);
@@ -443,7 +443,7 @@ build_jwe (json_t *hdr, json_t *cek, json_t *iv,
   strncpy (tmp, json_string_value (hdr), l);
   strcat (tmp, ".");
 
-  l = json_string_length (cek);
+  l = strlen (json_string_value (cek));
   tot = tot + l + 2;
 
   tmp = _realloc_zero (tmp, tot);
@@ -452,7 +452,7 @@ build_jwe (json_t *hdr, json_t *cek, json_t *iv,
   strcat (tmp, ".");
 
   /* Add iv */
-  l = json_string_length (iv);
+  l = strlen (json_string_value (iv));
   tot = tot + l + 2;
 
   tmp = _realloc_zero (tmp, tot);
@@ -461,7 +461,7 @@ build_jwe (json_t *hdr, json_t *cek, json_t *iv,
   strcat (tmp, ".");
 
   /* Add ciphertext */
-  l = json_string_length (ciphertext);
+  l = strlen (json_string_value (ciphertext));
   tot = tot + l + 2;
 
   tmp = _realloc_zero (tmp, tot);
@@ -470,7 +470,7 @@ build_jwe (json_t *hdr, json_t *cek, json_t *iv,
   strcat (tmp, ".");
 
   /* Add tag */
-  l = json_string_length (tag);
+  l = strlen (json_string_value (tag));
   tot = tot + l + 1;
 
   tmp = _realloc_zero (tmp, tot);
@@ -653,7 +653,7 @@ jwe_decrypt (const json_t *kek, const char *jwe, uint8_t **data, size_t *len)
     }
 
   const char *dots[4];
-  rc = jwt_discerptor (jwe, &dots, 4);
+  rc = jwt_discerptor (jwe, &dots[0], 4);
   if (rc)
     {
       fprintf(stderr, "%s\n", "Invalid JWE format");
