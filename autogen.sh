@@ -17,23 +17,14 @@
 # along with libcrypti2c.  If not, see <http://www.gnu.org/licenses/>.
 
 if [ ! -d "m4" ]; then
+    echo "mkdir m4"
     mkdir m4
 fi
 
 if [ ! -e "config.rpath" ]; then
+    echo "touch config.rpath"
     touch config.rpath
 fi
 
-pkg-config --exists yacl
-HAVE_YACL=$?
-
-if [ $HAVE_YACL -eq 0 ]; then
-    echo libyacl already installed
-else
-    echo "Get yacl from add-apt-repository ppa:cryptotronix/ppa"
-    exit 1
-fi
-
+echo "running autconf"
 autoreconf --force --install
-#./configure
-#make
