@@ -9,4 +9,8 @@ before_install:
   - sudo apt-get update -q
   - sudo apt-get install yacl-dev libssl-dev pkg-config -y
 
-script: ./autogen.sh
+script:
+  - ./autogen.sh
+  - ./configure --with-openssl --with-guile --with-glib
+  - make
+  - make check
