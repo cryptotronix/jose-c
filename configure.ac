@@ -28,7 +28,7 @@ AM_PROG_AR
 PKG_CHECK_MODULES([LIBGLIB], [glib-2.0])
 
 #Check for libjannson
-PKG_CHECK_MODULES([JANSSON], [jansson])
+PKG_CHECK_MODULES([JANSSON], [jansson >= 2.4])
 
 #Check for libyacl
 PKG_CHECK_MODULES([YACL], [yacl])
