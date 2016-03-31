@@ -7,6 +7,6 @@ compiler:
 before_install:
   - sudo add-apt-repository ppa:cryptotronix/ppa  -y
   - sudo apt-get update -q
-  - sudo apt-get install yacl-dev libssl-dev pkg-config
+  - sudo apt-get install yacl-dev libssl-dev pkg-config -y
 
 script: ./autogen.sh
