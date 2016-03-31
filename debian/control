@@ -18,7 +18,7 @@ Homepage: https://www.github.com/cryptotronix/jose-c
 Package: libjosec-dev
 Section: libdevel
 Architecture: any
-Depends: josec1 (= ${binary:Version}), ${misc:Depends}
+Depends: libjosec1 (= ${binary:Version}), ${misc:Depends}
 Description: JOSE/JWT/JWK/JWE Library
  Library for JOSE standards (JWT/JWK/JWE etc...)
 
