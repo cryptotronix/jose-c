@@ -14,13 +14,14 @@
 
 # You should have received a copy of the GNU Lesser General Public License
 # along with jose-c.  If not, see <http://www.gnu.org/licenses/>.
+if HAVE_LIBGLIB
 TESTS = check_libjosec check_jwe check_jwk check_rfc7520 util
 TESTS_ENVIRONMENT = $(VALGRIND)
 
 CFLAGS_TO_ADD = $(YACL_CFLAGS) $(JANSSON_CFLAGS) -I$(top_srcdir)/lib \
-                -I$(top_builddir)/lib -I$(top_srcdir)/src $(LIBGCRYPT_CFLAGS)
+                -I$(top_builddir)/lib -I$(top_srcdir)/src
 LIBS_TO_ADD = ../libjosec.la $(LIBGLIB_LIBS) $(JANSSON_LIBS) \
-              $(YACL_LIBS) $(LIBGCRYPT_LIBS)
+              $(YACL_LIBS)
 
 
 check_PROGRAMS = check_libjosec leak check_jwe check_jwk check_rfc7520 util
@@ -44,6 +45,7 @@ check_rfc7520_LDADD = $(LIBS_TO_ADD) $(CRYPTO_LIBS)
 util_SOURCES = test_util.c $(top_builddir)/libjosec.h
 util_CFLAGS = $(LIBGLIB_CFLAGS) $(CFLAGS_TO_ADD)
 util_LDADD = $(LIBS_TO_ADD) $(CRYPTO_LIBS)
+endif
 
 # jwtwrap_SOURCES = jwt_wrap.c $(top_builddir)/libjosec.h
 # jwtwrap_CFLAGS = $(CFLAGS_TO_ADD)
