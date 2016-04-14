@@ -233,25 +233,7 @@ jwe_aes_key_wrap(const uint8_t kek[JWE_AESKW_KEK_SIZE],
                  const uint8_t key[JWE_AESKW_KEY_SIZE],
                  uint8_t out[JWE_AESKW_WRAPPED_SIZE])
 {
-  int rc = -1;
-  AES_KEY wctx;
-
-  if (AES_set_encrypt_key(kek, JWE_AESKW_KEK_SIZE * 8, &wctx))
-    {
-      fprintf (stderr, "%s\n", "Failed to set encrypt key");
-      goto OUT;
-    }
-
-
-  rc = AES_wrap_key(&wctx, NULL, out, key, JWE_AESKW_KEY_SIZE);
-  if (rc <= 0)
-    {
-      fprintf (stderr, "%s\n", "Failed to perform key wrap");
-      goto OUT;
-    }
-  else if (JWE_AESKW_WRAPPED_SIZE == rc)
-    rc = 0;
-
+  int rc = yacl_aes_wrap(kek, JWE_AESKW_KEK_SIZE, key, out);
 
  OUT:
   return rc;
@@ -262,16 +244,14 @@ jwe_aes_key_unwrap(const uint8_t kek[JWE_AESKW_KEK_SIZE],
                    const uint8_t wkey[JWE_AESKW_WRAPPED_SIZE],
                    uint8_t out[JWE_AESKW_KEY_SIZE])
 {
-  int rc = -1;
-  AES_KEY wctx;
+  int rc = yacl_aes_unwrap(kek, JWE_AESKW_KEK_SIZE, wkey, out);
 
+  if (rc == 0)
+    {
+      /* return code compatible with OpenSSL API */
+      rc = 32;
+    }
 
-  if (AES_set_decrypt_key(kek, JWE_AESKW_KEK_SIZE*8, &wctx))
-    goto OUT;
-
-  rc = AES_unwrap_key(&wctx, NULL, out, wkey, JWE_AESKW_WRAPPED_SIZE);
-
- OUT:
   return rc;
 }
 
