@@ -13,10 +13,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <glib.h>
-
-#include <openssl/bio.h>
-#include <openssl/ssl.h>
-#include <openssl/err.h>
+#include <string.h>
 
 #if defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
 #pragma GCC diagnostic push
@@ -28,12 +25,6 @@
 #pragma GCC diagnostic ignored "-Wcast-qual"
 
 
-static void
-init_ssl()
-{
-  SSL_load_error_strings();
-  SSL_library_init();
-}
 
 static void t_2pubkey(void)
 {

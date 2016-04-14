@@ -11,34 +11,11 @@
 #include "jwt.h"
 #include <regex.h>
 
-#ifndef JOSEC_HAVE_OPENSSL
-
-int
-jwe_encrypt (jwa_t alg, jwa_t enc, const uint8_t *data, size_t len,
-             const json_t *kek, const char **jwe)
-{
-  return -10;
-}
-
-int
-jwe_decrypt (const json_t *kek, const char *jwe, uint8_t **data, size_t *len)
-{
-  return -10;
-}
-
-#elif JOSEC_HAVE_OPENSSL
-
 #define JWE_AESKW_KEK_SIZE 32
 #define JWE_AESKW_WRAPPED_SIZE 40
 #define JWE_AESKW_KEY_SIZE 32
-#define JWE_A256GCM_IV_SIZE 16
+#define JWE_A256GCM_IV_SIZE 12
 #define JWE_A256GCM_TAG_SIZE 16
-
-#include <openssl/rand.h>
-#include <openssl/conf.h>
-#include <openssl/evp.h>
-#include <openssl/err.h>
-#include <openssl/aes.h>
 
 #if defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
 #pragma GCC diagnostic push
@@ -56,85 +33,20 @@ aes_gcm_encrypt(const uint8_t *plaintext, int plaintext_len,
                 uint8_t *key, uint8_t *iv,
                 uint8_t *ciphertext, uint8_t *tag)
 {
-  EVP_CIPHER_CTX *ctx;
-  int len;
-  int ciphertext_len;
   int rc;
 
+  rc = yacl_aes_gcm_encrypt(plaintext, plaintext_len,
+                            aad, aad_len,
+                            key, JWE_AESKW_KEY_SIZE,
+                            iv, JWE_A256GCM_IV_SIZE,
+                            tag, JWE_A256GCM_TAG_SIZE,
+                            ciphertext, plaintext_len);
 
-  /* Create and initialise the context */
-  if(!(ctx = EVP_CIPHER_CTX_new()))
-    return -1;
+  if (0 == rc)
+    return plaintext_len;
+  else
+    return rc;
 
-  /* Initialise the encryption operation. */
-  if(1 != EVP_EncryptInit_ex(ctx, EVP_aes_256_gcm(), NULL, NULL, NULL))
-    {
-      rc = -2;
-      goto OUT;
-    }
-
-  /* Set IV length if default 12 bytes (96 bits) is not appropriate */
-  if(1 != EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_SET_IVLEN, 16, NULL))
-    {
-      rc = -3;
-      goto OUT;
-    }
-
-  /* Initialise key and IV */
-  if(1 != EVP_EncryptInit_ex(ctx, NULL, NULL, key, iv))
-    {
-      rc = -4;
-      goto OUT;
-    }
-
-  /* Provide any AAD data. This can be called zero or more times as
-   * required
-   */
-  if(1 != EVP_EncryptUpdate(ctx, NULL, &len, aad, aad_len))
-    {
-      rc = -5;
-      goto OUT;
-    }
-
-  /* Provide the message to be encrypted, and obtain the encrypted
-   * output.
-   * EVP_EncryptUpdate can be called multiple times if necessary
-   */
-  if(1 != EVP_EncryptUpdate(ctx, ciphertext, &len, plaintext, plaintext_len))
-    {
-      rc = -6;
-      goto OUT;
-    }
-
-
-  ciphertext_len = len;
-
-  /* Finalise the encryption. Normally ciphertext bytes may be
-   * written at
-   * this stage, but this does not occur in GCM mode
-   */
-  if(1 != EVP_EncryptFinal_ex(ctx, ciphertext + len, &len))
-    {
-      rc = -7;
-      goto OUT;
-    }
-
-  ciphertext_len += len;
-
-  /* Get the tag */
-  if(1 != EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_GET_TAG, 16, tag))
-    {
-      rc = -8;
-      goto OUT;
-    }
-
-  rc = ciphertext_len;
-
- OUT:
-  /* Clean up */
-  EVP_CIPHER_CTX_free(ctx);
-
-  return rc;
 }
 
 
@@ -145,87 +57,20 @@ aes_gcm_decrypt(uint8_t *ciphertext, int ciphertext_len,
                 uint8_t *key, uint8_t *iv,
                 uint8_t *plaintext)
 {
-  EVP_CIPHER_CTX *ctx;
-  int len;
-  int plaintext_len;
   int rc = -1;
 
-  /* Create and initialise the context */
-  if(!(ctx = EVP_CIPHER_CTX_new()))
-    return -1;
+  rc = yacl_aes_gcm_decrypt(ciphertext, ciphertext_len,
+                            aad, aad_len,
+                            key, JWE_AESKW_KEY_SIZE,
+                            iv, JWE_A256GCM_IV_SIZE,
+                            tag, JWE_A256GCM_TAG_SIZE,
+                            plaintext, ciphertext_len);
 
-  /* Initialise the decryption operation. */
-  if(!EVP_DecryptInit_ex(ctx, EVP_aes_256_gcm(), NULL, NULL, NULL))
-    {
-      rc = -2;
-      goto OUT;
-    }
-
-  /* Set IV length. Not necessary if this is 12 bytes (96 bits) */
-  if(!EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_SET_IVLEN, 16, NULL))
-    {
-      rc = -3;
-      goto OUT;
-    }
-
-  /* Initialise key and IV */
-  if(!EVP_DecryptInit_ex(ctx, NULL, NULL, key, iv))
-    {
-      rc = -4;
-      goto OUT;
-    }
-
-  /* Provide any AAD data. This can be called zero or more times as
-   * required
-   */
-  if(!EVP_DecryptUpdate(ctx, NULL, &len, aad, aad_len))
-    {
-      rc = -5;
-      goto OUT;
-    }
-
-
-  /* Provide the message to be decrypted, and obtain the plaintext
-   * output.
-   * EVP_DecryptUpdate can be called multiple times if necessary
-   */
-  if(!EVP_DecryptUpdate(ctx, plaintext, &len, ciphertext, ciphertext_len))
-    {
-      rc = -6;
-      goto OUT;
-    }
-  plaintext_len = len;
-
-  /* Set expected tag value. Works in OpenSSL 1.0.1d and later */
-  if(!EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_SET_TAG, 16, tag))
-    {
-      rc = -7;
-      goto OUT;
-    }
-
-  /* Finalise the decryption. A positive return value indicates
-   * success,
-   * anything else is a failure - the plaintext is not trustworthy.
-   */
-  rc = EVP_DecryptFinal_ex(ctx, plaintext + len, &len);
-
- OUT:
-  /* Clean up */
-  EVP_CIPHER_CTX_free(ctx);
-
-  if(rc > 0)
-    {
-      /* Success */
-      plaintext_len += len;
-      return plaintext_len;
-
-    }
+  if (0 == rc)
+    return ciphertext_len;
   else
-    {
-      /* Verify failed */
-      return rc;
+    return rc;
 
-    }
 }
 
 int
@@ -477,11 +322,8 @@ jwe_encrypt (jwa_t alg, jwa_t enc, const uint8_t *data, size_t len,
 
   /* Create the CEK */
   static uint8_t raw_cek[JWE_AESKW_KEY_SIZE];
-  rc = RAND_bytes (raw_cek, sizeof(raw_cek));
-  if (rc != 1)
-    {
-      goto OUT;
-    }
+  rc = yacl_get_random (raw_cek, sizeof(raw_cek));
+  if (rc) goto OUT;
 
   json_t *cek;
   rc = create_cek (kek, raw_cek, &cek);
@@ -489,11 +331,8 @@ jwe_encrypt (jwa_t alg, jwa_t enc, const uint8_t *data, size_t len,
 
   /* Create an IV */
   static uint8_t raw_iv[JWE_A256GCM_IV_SIZE];
-  rc = RAND_bytes (raw_iv, sizeof(raw_iv));
-  if (rc != 1)
-    {
-      goto OUT;
-    }
+  rc = yacl_get_random (raw_iv, sizeof(raw_iv));
+  if (rc) goto OUT;
 
   json_t *iv;
   rc = bytes2b64urljsonstr (raw_iv, JWE_A256GCM_IV_SIZE, &iv);
@@ -533,7 +372,6 @@ jwe_encrypt (jwa_t alg, jwa_t enc, const uint8_t *data, size_t len,
   json_t *tag;
   rc = bytes2b64urljsonstr (raw_tag, JWE_A256GCM_TAG_SIZE, &tag);
   if (rc) goto CIPHERTEXT;
-
 
   *jwe = build_jwe (hdr, cek, iv, cipher, tag);
 
@@ -785,5 +623,3 @@ jwe_decrypt (const json_t *kek, const char *jwe, uint8_t **data, size_t *len)
 #if defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
 #pragma GCC diagnostic pop
 #endif
-
-#endif /* JOSEC_HAVE_OPENSSL */
