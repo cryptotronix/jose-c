@@ -477,10 +477,7 @@ OUT:
 int
 jwt_decode (const char *jwt, json_t **header, json_t **claims)
 {
-    int rc = jwt_check_allowed_char (jwt, strlen(jwt));
-    if (rc) return rc;
-
-    rc = jwt_split (jwt, header, claims);
+    int rc = jwt_split (jwt, header, claims);
 
     return rc;
 }

@@ -1,7 +1,6 @@
 /* -*- mode: c; c-file-style: "gnu" -*- */
 
-#include "config.h" /* Only needed for this autotools project, not
-                     * real production code */
+#include "config.h"
 #include <unistd.h>
 #include <sys/socket.h>
 #include <stdio.h>
@@ -23,7 +22,7 @@
 
 typedef struct tc_argsd_t
 {
-  char *args[TC_NUM_ARGS + 1];
+  char *args[TC_NUM_ARGS + 1 + 1];
   int silent, verbose;
 } tc_argsd_t;
 
@@ -34,7 +33,7 @@ const char *argp_program_bug_address = PACKAGE_BUGREPORT;
 /* Program documentation. */
 static char doc[] =
   "Simple JWT parser\n\n"
-  "Pass the JWT as stdin";
+  "Pass the JWT as stdin or as the first arg";
 
 /* A description of the arguments we accept. */
 static char args_doc[] = "";
@@ -64,7 +63,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
       arguments->verbose = 1;
       break;
     case ARGP_KEY_ARG:
-      if (state->arg_num >= TC_NUM_ARGS)
+      if (state->arg_num > TC_NUM_ARGS)
         /* Too many arguments. */
         argp_usage (state);
       else
@@ -101,7 +100,7 @@ main(int argc, char *argv[])
 {
   int rc = -1;
 
-  tc_argsd_t arguments;
+  tc_argsd_t arguments = {};
 
   init_argp (&arguments);
 
@@ -116,14 +115,24 @@ main(int argc, char *argv[])
 
   char *line = NULL;
   size_t n = 0;
+  ssize_t line_s;
 
-  ssize_t line_s = getline(&line, &n, stdin);
-
-  if (line_s <= 0)
+  if (arguments.args[0])
     {
-      fprintf (stderr, "Failed to read line\n");
-      exit (EXIT_FAILURE);
+      line_s = strlen (arguments.args[0]);
+      line = strdup (arguments.args[0]);
+      assert (line);
     }
+  else
+    {
+      line_s = getline(&line, &n, stdin);
+      if (line_s <= 0)
+        {
+          fprintf (stderr, "Failed to read line\n");
+          exit (EXIT_FAILURE);
+        }
+    }
+
 
   char *jwt = trim(line);
   assert (jwt);
