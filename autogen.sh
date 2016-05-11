@@ -28,3 +28,10 @@ fi
 
 echo "running autconf"
 autoreconf --force --install
+
+wget https://github.com/cryptotronix/yacl/releases/download/v1.0.0rc1/yacl-1.0.0.tar.gz
+tar xf yacl*
+cd yacl*
+./configure --with-guile --with-libsodium --with-libglib
+make
+sudo make install
