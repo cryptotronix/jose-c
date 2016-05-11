@@ -5,12 +5,12 @@
 %define _libdir %{_prefix}/lib64
 
 Name: josec
-Version: 0.15.2
+Version: 0.15.3
 Release: 0
 Summary: josec library
 License: see %{pkgdocdir}/copyright
 
-%define packagebase josec-0.15.2
+%define packagebase josec-0.15.3
 
 Group: System Environment/Libraries
 Source: %{packagebase}.tar.gz
@@ -70,7 +70,7 @@ make install-strip DESTDIR=%{buildroot}
 %defattr( -, root, root )
 #%define _prefix /
 /usr/lib64/pkgconfig/josec.pc
-/usr/include/josec-0.3/*
+/usr/include/josec-*/*
 /usr/lib64/*.so
 /usr/lib64/*.so.*
 
