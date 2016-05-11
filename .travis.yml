@@ -6,7 +6,7 @@ compiler:
 # Change this to your needs
 before_install:
   - sudo add-apt-repository ppa:cryptotronix/ppa  -y
-  - sudo add-apt-repository ppa:chris-lea/libsodium
+  - sudo add-apt-repository ppa:chris-lea/libsodium -y
   - sudo apt-get update -q
   - sudo apt-get install yacl-dev yacl1 pkg-config libjansson-dev libjansson4 guile-2.0-dev libsodium-dev -y
 
