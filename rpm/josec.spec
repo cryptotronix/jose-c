@@ -54,12 +54,12 @@ make install-strip DESTDIR=%{buildroot}
 
 
 %post
--p /sbin/ldconfig
+/sbin/ldconfig
 
 %preun
 
 %postun
--p /sbin/ldconfig
+/sbin/ldconfig
 
 %posttrans
 
