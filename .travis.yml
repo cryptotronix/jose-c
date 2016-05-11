@@ -7,7 +7,7 @@ compiler:
 before_install:
   - sudo add-apt-repository ppa:cryptotronix/ppa  -y
   - sudo apt-get update -q
-  - sudo apt-get install yacl-dev yacl1 pkg-config libjansson-dev libjansson4 -y
+  - sudo apt-get install yacl-dev yacl1 pkg-config libjansson-dev libjansson4 guile-2.0-dev -y
 
 script:
   - ./autogen.sh
