@@ -10,7 +10,7 @@ Release: 0
 Summary: josec library
 License: see %{pkgdocdir}/copyright
 
-%define packagebase josec-0.15.3
+%define packagebase josec-0.15.4
 
 Group: System Environment/Libraries
 Source: %{packagebase}.tar.gz
