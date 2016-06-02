@@ -59,8 +59,11 @@ jwt_encode(jose_context_t *ctx, const json_t *claims, jwa_t alg)
     case HS256:
         alg_type = "HS256";
         break;
+    case RS256:
+        alg_type = "RS256";
+        break;
     default:
-        assert (0);
+        return NULL;
     }
 
     json_t *head_j = json_object();
