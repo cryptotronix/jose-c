@@ -5,7 +5,7 @@
 %define _libdir %{_prefix}/lib64
 
 Name: josec
-Version: 0.15.3
+Version: 0.15.4
 Release: 0
 Summary: josec library
 License: see %{pkgdocdir}/copyright
