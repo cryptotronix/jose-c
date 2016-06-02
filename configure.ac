@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with libjosec.  If not, see <http://www.gnu.org/licenses/>.
 
-AC_INIT([libjose-c], [0.15.3], [bugs@cryptotronix.com], [josec],
+AC_INIT([libjose-c], [0.15.4], [bugs@cryptotronix.com], [josec],
                      [https://github.com/cryptotronix/jose-c])
 AC_PREREQ([2.59])
 AC_USE_SYSTEM_EXTENSIONS
