@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with libjosec.  If not, see <http://www.gnu.org/licenses/>.
 
-AC_INIT([libjose-c], [0.15.4], [bugs@cryptotronix.com], [josec],
+AC_INIT([libjose-c], [0.16.0], [bugs@cryptotronix.com], [josec],
                      [https://github.com/cryptotronix/jose-c])
 AC_PREREQ([2.59])
 AC_USE_SYSTEM_EXTENSIONS
@@ -61,15 +61,15 @@ AM_CONDITIONAL([HAVE_GUILE], [test "x$with_guile" = "xyes"])
 
 
 
-AS_IF([test "x$with_guile" = "xyes"], [
-  # Guile Extensions
-  PKG_CHECK_MODULES([GUILE], [guile-2.0])
-  GUILE_PROGS
-  GUILE_FLAGS
-  GUILE_SITE_DIR
-])
+dnl AS_IF([test "x$with_guile" = "xyes"], [
+dnl   # Guile Extensions
+dnl   PKG_CHECK_MODULES([GUILE], [guile-2.0])
+dnl   GUILE_PROGS
+dnl   GUILE_FLAGS
+dnl   GUILE_SITE_DIR
+dnl ])
 
-AC_SUBST([JOSEC_SO_VERSION], [9:1:1])
+AC_SUBST([JOSEC_SO_VERSION], [10:0:0])
 #                              | | |
 #                       +------+ | +---+
 #                       |        |     |
@@ -81,7 +81,7 @@ AC_SUBST([JOSEC_SO_VERSION], [9:1:1])
 #                       |        +- increment if source code has changed
 #                       |           set to zero if current is incremented
 #                       +- increment if interfaces have been added, removed or changed
-AC_SUBST([JOSEC_API_VERSION], [0.11])
+AC_SUBST([JOSEC_API_VERSION], [0.12])
 
 # Override the template file name of the generated .pc file, so that there
 # is no need to rename the template file when the API version changes.

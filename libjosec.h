@@ -88,6 +88,10 @@ jose_close_context (jose_context_t *ctx);
 char *
 jwt_encode(jose_context_t *ctx, const json_t *claims, jwa_t alg);
 
+char *
+jwt_build (jose_context_t *ctx, const json_t *header, const json_t *claims,
+           jwa_t alg);
+
 int
 jwt_verify_sig(jose_context_t *ctx, const char *jwt, jwa_t alg);
 

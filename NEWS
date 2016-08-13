@@ -1,6 +1,11 @@
 jose-c NEWS -- history of user-visible changes
 Copyright (C) 2014-2016 Cryptotronix, LLC.
 
+Noteworthy changes in version 0.16.0 (---)
+----------------------------------------------------
+  * Adds new jwt_build function which allows more flexible protected
+  header creation.
+
 Noteworthy changes in version 0.15.4 (Thursday, 2 June 2016)
 ----------------------------------------------------
   * Allows for creation of RS256 JWTs

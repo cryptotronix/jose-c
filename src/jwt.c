@@ -37,40 +37,19 @@ jwa2enum (const char *str)
 }
 
 char *
-jwt_encode(jose_context_t *ctx, const json_t *claims, jwa_t alg)
+jwt_build (jose_context_t *ctx, const json_t *header, const json_t *claims,
+    jwa_t alg)
 {
+    assert (ctx);
+    /* This library requires a header parameter */
+    assert (header);
+    assert (claims);
 
     char *result = NULL;
 
-    assert (ctx);
-    assert (claims);
-
-
-    const char *alg_type;
-
-    switch (alg)
-    {
-    case ES256:
-        alg_type = "ES256";
-        break;
-    case NONE:
-        alg_type = "none";
-        break;
-    case HS256:
-        alg_type = "HS256";
-        break;
-    case RS256:
-        alg_type = "RS256";
-        break;
-    default:
-        return NULL;
-    }
-
-    json_t *head_j = json_object();
-    assert (head_j);
-    assert (0 == json_object_set_new(head_j, "alg", json_string(alg_type)));
-
-    char *signing_input = make_signing_input (head_j, claims);
+    char *signing_input = make_signing_input (header, claims);
+    if (!signing_input)
+        return signing_input;
 
     if (NONE == alg)
     {
@@ -110,8 +89,48 @@ jwt_encode(jose_context_t *ctx, const json_t *claims, jwa_t alg)
 
     }
 
-    json_decref (head_j);
     free (signing_input);
+
+    return result;
+}
+
+char *
+jwt_encode(jose_context_t *ctx, const json_t *claims, jwa_t alg)
+{
+
+    char *result = NULL;
+
+    assert (ctx);
+    assert (claims);
+
+
+    const char *alg_type;
+
+    switch (alg)
+    {
+    case ES256:
+        alg_type = "ES256";
+        break;
+    case NONE:
+        alg_type = "none";
+        break;
+    case HS256:
+        alg_type = "HS256";
+        break;
+    case RS256:
+        alg_type = "RS256";
+        break;
+    default:
+        return NULL;
+    }
+
+    json_t *head_j = json_object();
+    assert (head_j);
+    assert (0 == json_object_set_new(head_j, "alg", json_string(alg_type)));
+
+    result = jwt_build (ctx, head_j, claims, alg);
+
+    json_decref (head_j);
 
     return result;
 }
