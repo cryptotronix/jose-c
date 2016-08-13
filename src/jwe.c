@@ -35,12 +35,12 @@ aes_gcm_encrypt(const uint8_t *plaintext, int plaintext_len,
 {
   int rc;
 
-  rc = yacl_aes_gcm_encrypt(plaintext, plaintext_len,
-                            aad, aad_len,
-                            key, JWE_AESKW_KEY_SIZE,
-                            iv, JWE_A256GCM_IV_SIZE,
-                            tag, JWE_A256GCM_TAG_SIZE,
-                            ciphertext, plaintext_len);
+  rc = yacl_aes256gcm_encrypt(plaintext, plaintext_len,
+                              aad, aad_len,
+                              key, JWE_AESKW_KEY_SIZE,
+                              iv, JWE_A256GCM_IV_SIZE,
+                              tag, JWE_A256GCM_TAG_SIZE,
+                              ciphertext, plaintext_len);
 
   if (0 == rc)
     return plaintext_len;
@@ -59,12 +59,12 @@ aes_gcm_decrypt(uint8_t *ciphertext, int ciphertext_len,
 {
   int rc = -1;
 
-  rc = yacl_aes_gcm_decrypt(ciphertext, ciphertext_len,
-                            aad, aad_len,
-                            key, JWE_AESKW_KEY_SIZE,
-                            iv, JWE_A256GCM_IV_SIZE,
-                            tag, JWE_A256GCM_TAG_SIZE,
-                            plaintext, ciphertext_len);
+  rc = yacl_aes256gcm_encrypt(ciphertext, ciphertext_len,
+                              aad, aad_len,
+                              key, JWE_AESKW_KEY_SIZE,
+                              iv, JWE_A256GCM_IV_SIZE,
+                              tag, JWE_A256GCM_TAG_SIZE,
+                              plaintext, ciphertext_len);
 
   if (0 == rc)
     return ciphertext_len;
