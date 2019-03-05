@@ -77,6 +77,6 @@ josec_libincludedir = $(libdir)/josec-$(JOSEC_API_VERSION)/include
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = josec.pc
 
-dist_noinst_SCRIPTS = autogen.sh install-sh
+dist_noinst_SCRIPTS = autogen.sh
 
 EXTRA_DIST =  rpm/josec.spec

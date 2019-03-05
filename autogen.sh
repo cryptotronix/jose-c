@@ -16,6 +16,8 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with libcrypti2c.  If not, see <http://www.gnu.org/licenses/>.
 
+yacl_ver=1.1.1
+
 if [ ! -d "m4" ]; then
     echo "mkdir m4"
     mkdir m4
@@ -26,12 +28,23 @@ if [ ! -e "config.rpath" ]; then
     touch config.rpath
 fi
 
-echo "running autconf"
-autoreconf --force --install
+pkg-config --exists yacl
+HAVE_YACL=$?
 
-wget https://github.com/cryptotronix/yacl/releases/download/v1.0.0rc1/yacl-1.0.0.tar.gz
-tar xf yacl*
-cd yacl*
-./configure --with-libglib --with-guile --with-libsodium
-make
-sudo make install
+if [ $HAVE_YACL -eq 0 ]; then
+    echo "libyacl already installed!"
+else
+    echo "Installing libyacl..."
+    wget https://github.com/cryptotronix/yacl/releases/download/v$yacl_ver/yacl-$yacl_ver.tar.gz
+    tar -xvzf yacl-*.tar.gz
+    cd yacl-*
+    ./configure --with-libglib --with-guile --with-libsodium
+    make
+    echo "Enter password to install libyacl library"
+    sudo make install
+    cd ..
+    sudo ldconfig
+fi
+
+echo "running autoconf"
+autoreconf -vif

@@ -5,12 +5,12 @@
 %define _libdir %{_prefix}/lib64
 
 Name: josec
-Version: 0.16.0
+Version: 0.16.1
 Release: 0
 Summary: josec library
 License: see %{pkgdocdir}/copyright
 
-%define packagebase josec-0.16.0
+%define packagebase josec-0.16.1
 
 Group: System Environment/Libraries
 Source: %{packagebase}.tar.gz
